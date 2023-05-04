@@ -24,4 +24,8 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+
+  /* The max dimensions allowed via Chromium browsers and Firefox is 800x600 pixels. */
+  width: 500px;
+  min-height: 600px;
 }
