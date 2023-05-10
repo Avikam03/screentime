@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Inter } from 'next/font/google'
 import { useState, useEffect } from 'react';
+import storage from "../../public/background/storage"
 
 // import { WeekGraph } from '../components/weekgraph'
 // import WeekGraph from '../components/weekgraph'
@@ -24,22 +25,37 @@ export default function Home() {
   // write a function to get the data from chrome.storage then process it into a graph
   useEffect(() => {
     setLoading(true);
-    chrome.storage.sync.get(['limitify_raw'], function(result) {
-      console.log("limitify_raw:" + result.key);
-      setRawData(result.key)
-      chrome.storage.sync.set({limitify_raw: []});
-    });
+    
+    storage.get("limitify_raw").then((result) => {
+      setRawData(result)
+    })
+    storage.set({limitify_raw: []})
 
+    // chrome.storage.sync.get(['limitify_raw'], function(result) {
+    //   console.log("limitify_raw:" + result.key);
+    //   setRawData(result.key)
+    //   chrome.storage.sync.set({limitify_raw: []});
+    // });
 
-    chrome.storage.sync.get(['limitify_processed'], function(result) {
-      console.log("limitify_processed:" + result.key);
+    storage.get("limitify_processed").then((result) => {
       rawData.forEach(element => {
-        result.key[element.url.hostname] += Math.abs(element.endTime.getTime() - element.startTime.getTime()) / 1000;
-      });
-      chrome.storage.sync.set({limity_processed: result.key});
-      setProcessedData(result.key)
-    });
+        result[element.url.hostname] += Math.abs(element.endTime.getTime() - element.startTime.getTime()) / 1000;
+      })
+      storage.set({limitify_processed: result});
+      setProcessedData(result)
+    })
     setLoading(false);
+
+    // chrome.storage.sync.get(['limitify_processed'], function(result) {
+    //   console.log("limitify_processed:" + result.key);
+    //   rawData.forEach(element => {
+    //     result.key[element.url.hostname] += Math.abs(element.endTime.getTime() - element.startTime.getTime()) / 1000;
+    //   });
+    //   chrome.storage.sync.set({limity_processed: result.key});
+    //   setProcessedData(result.key)
+    // });
+    // setLoading(false);
+
   }, []);
 
 

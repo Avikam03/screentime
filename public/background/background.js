@@ -1,3 +1,5 @@
+import storage from "./storage"
+
 var storageCurTabReal = {
 	id: null,
 	url: new URL("chrome://newtab/"),
@@ -7,12 +9,8 @@ var storageCurTabReal = {
 };
 
 console.log("hello world")
-// chrome.storage.sync.set({ limitify_raw: [] }).then(() => {
-// 	console.log("just set limitify_raw to" + []);
-// });
-// chrome.storage.sync.set({ limitify_processed: [] }).then(() => {
-// 	console.log("just set limitify_processed to" + []);
-// });
+storage.set("limitify_raw", []).then(() => {});
+storage.set("limitify_processed", []).then(() => {});
 
 chrome.windows.onFocusChanged.addListener((windowId) => {
 	if (windowId == chrome.windows.WINDOW_ID_NONE) {
@@ -20,11 +18,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 		if (storageCurTabReal.url.hostname != "newtab") {
 			storageCurTabReal.endTime = Date.now();
 			console.log(storageCurTabReal);
-			chrome.storage.sync.get(['limitify_raw'], function(result) {
-				var temparr = result.key ? result.key : [];
-				temparr.push(storageCurTabReal);
-				chrome.storage.sync.set({'limitify_raw': temparr})
-			});
+			storage.add("limitify_raw", storageCurTabReal).then(() => {})
 		}
 	} else {
 		if (storageCurTabReal.url.hostname != "newtab") {
@@ -41,11 +35,7 @@ function changedTo(tabId, tab) {
 	if (storageCurTabReal.url.hostname != "newtab") {
 		storageCurTabReal.endTime = Date.now();
 		console.log(storageCurTabReal);
-		chrome.storage.sync.get(['limitify_raw'], function(result) {
-			var temparr = result.key ? result.key : [];
-			temparr.push(storageCurTabReal);
-			chrome.storage.sync.set({'limitify_raw': temparr})
-		});
+		storage.add("limitify_raw", storageCurTabReal).then(() => {})
 	}
 	storageCurTabReal = {
 		id: tabId,
