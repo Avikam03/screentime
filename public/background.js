@@ -2,7 +2,8 @@
 
 var storageCurTabReal = {
 	id: null,
-	url: new URL("chrome://newtab/"),
+	// url: new URL("chrome://newtab/"),
+	url: "newtab",
 	title: null,
 	startTime: null,
 	endTime: null
@@ -46,13 +47,13 @@ storage.set("limitify_processed", {}).then(() => {});
 chrome.windows.onFocusChanged.addListener((windowId) => {
 	if (windowId == chrome.windows.WINDOW_ID_NONE) {
 		// set end time of cur tab in storage to right now
-		if (storageCurTabReal.url.hostname != "newtab") {
+		if (storageCurTabReal.url != "newtab") {
 			storageCurTabReal.endTime = Date.now();
 			console.log(storageCurTabReal);
 			storage.add("limitify_raw", storageCurTabReal).then(() => {})
 		}
 	} else {
-		if (storageCurTabReal.url.hostname != "newtab") {
+		if (storageCurTabReal.url != "newtab") {
 			console.log("changedTo: " + storageCurTabReal.url);
 		}
 		storageCurTabReal.startTime = Date.now();
@@ -61,16 +62,18 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 function changedTo(tabId, tab) {
 	var changeurl = new URL(tab.url == "" ? "chrome://newtab/" : tab.url);
+	// var changeurl = tab.url == "" ? "chrome://newtab/" : tab.url;
 	changeurl.hostname != "newtab" ? console.log("changedTo: " + changeurl) : null;
 
-	if (storageCurTabReal.url.hostname != "newtab") {
+	if (storageCurTabReal.url != "newtab") {
 		storageCurTabReal.endTime = Date.now();
 		console.log(storageCurTabReal);
 		storage.add("limitify_raw", storageCurTabReal).then(() => {})
 	}
 	storageCurTabReal = {
 		id: tabId,
-		url: changeurl,
+		// url: changeurl,
+		url: changeurl.hostname,
 		title: tab.title,
 		startTime: Date.now(),
 		endTime: null
