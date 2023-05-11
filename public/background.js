@@ -4,6 +4,7 @@ var storageCurTabReal = {
 	id: null,
 	// url: new URL("chrome://newtab/"),
 	url: "newtab",
+	favicon: null,
 	title: null,
 	startTime: null,
 	endTime: null

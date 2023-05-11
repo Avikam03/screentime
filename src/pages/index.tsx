@@ -5,6 +5,7 @@ import storage from "../../public/storage"
 
 // import { WeekGraph } from '../components/weekgraph'
 // import WeekGraph from '../components/weekgraph'
+// import DayGraph from '../components/daygraph';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -67,17 +68,83 @@ export default function Home() {
 
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
+      className={`flex min-h-screen flex-col items-center justify-between ${inter.className}`}
     >
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        {/* <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">ScreenTime</h1> */}
-        {loading ? <h2 className="text-4xl font-extrabold dark:text-white">Loading...</h2> : <h2 className="text-xl font-extrabold dark:text-white">Here's your screen time for today!</h2>}
-        <ul className="list-disc">
-        {Object.keys(processedData).map((key) => (
-          <li>{key}: {processedData[key]}</li>
-        ))}
-        </ul>
-        {/* <WeekGraph /> */}
+      {/* <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]"> */}
+      <div className="py-4 place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
+
+        {loading ? <h2 className="text-4xl font-extrabold dark:text-white">Loading...</h2>
+                 : <h2 className="text-xl font-extrabold dark:text-white">Here's your screen time for today!</h2>
+        }
+
+      {/* <table className="table-auto mt-4">
+        <thead>
+          <tr>
+            <th>Website</th>
+            <th>Time</th>
+            <th>Limits</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.keys(processedData).map((key) => (
+            <tr>
+              <td>{key}</td>
+              <td>{processedData[key]}</td>
+              <td></td>
+            </tr>
+          ))}
+        </tbody>
+      </table> */}
+
+        <div className="flex flex-col">
+          <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+              <div className="overflow-hidden">
+                <table className="min-w-full text-left text-sm font-light">
+                  <thead className="border-b font-medium dark:border-neutral-500">
+                    <tr>
+                      <th scope="col" className="px-6 py-4">Website</th>
+                      <th scope="col" className="px-6 py-4">Time</th>
+                      <th scope="col" className="px-6 py-4">Limit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.keys(processedData).map((key) => (
+                      <tr className="border-b dark:border-neutral-500">
+                        <td className="whitespace-nowrap px-6 py-4 font-medium">
+                          <div className="flex items-center">
+                            <Image 
+                              src={"https://www.google.com/s2/favicons?domain=" + key + "&sz=32"}
+                              width={32}
+                              height={32}
+                              alt="website icon"
+                            />
+                            <div className="ml-2">{key}</div>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          {   
+                            processedData[key] > 3600
+                              ? Math.floor(processedData[key] / 3600) + "h " + Math.round((processedData[key] % 3600) / 60) + "m" // If time is more than an hour
+                              : processedData[key] > 60
+                              ? Math.round(processedData[key] / 60) + "m" // If time is more than 1 minute
+                              : Math.round(processedData[key]) + "s" // If time is less than one minute
+                          }
+
+                          {/* {Math.round(processedData[key])} */}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4"></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
       </div>
     </main>
   )
