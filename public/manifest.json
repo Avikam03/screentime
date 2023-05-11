@@ -7,7 +7,7 @@
       "default_popup": "index.html"
     },
     "background": {
-      "service_worker": "background/background.js",
+      "service_worker": "background.js",
       "type": "module"
     },
     "permissions": [
@@ -15,6 +15,7 @@
       "activeTab",
       "storage",
       "background",
-      "scripting"
+      "scripting",
+      "unlimitedStorage"
     ]
   }
