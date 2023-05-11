@@ -41,7 +41,7 @@ const storage = {
 
 console.log("hello world 2")
 storage.set("limitify_raw", []).then(() => {});
-storage.set("limitify_processed", []).then(() => {});
+storage.set("limitify_processed", {}).then(() => {});
 
 chrome.windows.onFocusChanged.addListener((windowId) => {
 	if (windowId == chrome.windows.WINDOW_ID_NONE) {

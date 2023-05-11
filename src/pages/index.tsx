@@ -17,29 +17,45 @@ type ScreenTime = {
 };
 
 export default function Home() {
-  const [loading, setLoading] = useState(false);
-  const [rawData, setRawData] = useState([] as ScreenTime[]);
-
-  const [processedData, setProcessedData] = useState({} as {[key: string]: number}); // [hostname: string]: number
+  var loading: boolean = false;
+  // const [loading, setLoading] = useState(false);
+  var rawData: ScreenTime[] = [];
+  // const [rawData, setRawData] = useState([] as ScreenTime[]);
+  var processedData: {[key: string]: number} = {};
+  // const [processedData, setProcessedData] = useState({} as {[key: string]: number}); // [hostname: string]: number
 
   // write a function to get the data from chrome.storage then process it into a graph
   useEffect(() => {
     console.log("useEffect() in index.tsx")
-    setLoading(true);
+    loading = true;
+    // setLoading(true);
     
     storage.get("limitify_raw").then((result: ScreenTime[]) => {
-      setRawData(result)
+      console.log("limitify_raw just got getted")
+      rawData = result;
+      console.log("rawData:" + JSON.stringify(rawData))
+      // setRawData(result)
     })
-    storage.set({limitify_raw: []})
+    storage.set("limitify_raw", [])
 
     storage.get("limitify_processed").then((result: {[key: string]: number}) => {
       console.log("limitify_processed just got getted")
+      console.log("processed:" + JSON.stringify(result))
+
       rawData.forEach(element => {
-        result[element.url.hostname] += Math.abs(element.endTime.getTime() - element.startTime.getTime()) / 1000;
+        console.log("element:" + JSON.stringify(element))
+        console.log("element.url is: " + JSON.stringify(element.url))
+        var date1 = new Date(element.endTime)
+        var date2 = new Date(element.startTime)
+        result[element.url.hostname] += Math.abs(date1.getTime() - date2.getTime()) / 1000;
+        console.log("Just added " + Math.abs(date1.getTime() - date2.getTime()) / 1000 + " seconds to " + element.url.hostname);
       })
-      storage.set({limitify_processed: result});
-      setProcessedData(result)
-      setLoading(false);
+
+      storage.set("limitify_processed", result);
+      processedData = result;
+      // setProcessedData(result)
+      loading = false;
+      // setLoading(false);
     })
 
   });
