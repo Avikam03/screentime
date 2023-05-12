@@ -56,6 +56,9 @@ export default function Home() {
         console.log("Just added " + Math.abs(date1.getTime() - date2.getTime()) / 1000 + " seconds to " + element.url);
       })
 
+      var sortedData = Object.entries(result).sort((a, b) => b[1] - a[1]);
+      result = Object.fromEntries(sortedData);
+
       storage.set("limitify_processed", result);
       // processedData = result;
       setProcessedData(result)
@@ -127,7 +130,7 @@ export default function Home() {
                             processedData[key] > 3600
                               ? Math.floor(processedData[key] / 3600) + "h " + Math.round((processedData[key] % 3600) / 60) + "m" // If time is more than an hour
                               : processedData[key] > 60
-                              ? Math.round(processedData[key] / 60) + "m" // If time is more than 1 minute
+                              ? Math.round(processedData[key] / 60) + "min" // If time is more than 1 minute
                               : Math.round(processedData[key]) + "s" // If time is less than one minute
                           }
 
