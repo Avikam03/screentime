@@ -5,11 +5,9 @@ import { useState, useEffect } from 'react';
 const inter = Inter({ subsets: ['latin'] });
 
 type ScreenTime = {
-  id: string;
-  url: string;
-  title: string;
-  startTime: Date;
-  endTime: Date;
+  [key: string]: {
+    [key: string]: number;
+  };
 };
 
 export default function Home() {
@@ -22,33 +20,14 @@ export default function Home() {
     // Run the code only on the client-side
     if (typeof window !== 'undefined') {
       import('../../public/storage.js').then((storage) => {
-        var rawData: ScreenTime[] = [];
+        storage.default.get('limitify_data').then((result : ScreenTime) => {
+          var curDate = new Date();
+          
+          var todaysdata : { [key: string]: number } = result[(curDate.getDay()).toString()]; // get the data for today
+          var sortedData = Object.entries(todaysdata).sort((a, b) => b[1] - a[1]);
+          todaysdata = Object.fromEntries(sortedData);
 
-        storage.default.get('limitify_raw').then((result: ScreenTime[]) => {
-          rawData = result;
-          console.log('rawData:', JSON.stringify(rawData));
-        });
-
-        storage.default.set('limitify_raw', []);
-
-        storage.default.get('limitify_processed').then((result: { [key: string]: number }) => {
-          console.log('processed:', JSON.stringify(result));
-
-          rawData.forEach((element) => {
-            var date1 = new Date(element.endTime);
-            var date2 = new Date(element.startTime);
-            if (result[element.url] === undefined) {
-              result[element.url] = 0;
-            }
-            result[element.url] += Math.abs(date1.getTime() - date2.getTime()) / 1000;
-            console.log(`Just added ${Math.abs(date1.getTime() - date2.getTime()) / 1000} seconds to ${element.url}`);
-          });
-
-          var sortedData = Object.entries(result).sort((a, b) => b[1] - a[1]);
-          result = Object.fromEntries(sortedData);
-
-          storage.default.set('limitify_processed', result);
-          setProcessedData(result);
+          setProcessedData(todaysdata);
           setLoading(false);
         });
       });
