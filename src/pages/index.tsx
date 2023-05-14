@@ -74,32 +74,15 @@ export default function Home() {
       className={`flex min-h-screen flex-col items-center justify-between ${inter.className}`}
     >
       {/* <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]"> */}
-      <div className="py-4 place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
+      {/* <div className="place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]"> */}
+      <body className="px-4 bg-gradient-to-br from-stone-600 via-black to-slate-700">
+      {/* h-max w-full */}
 
-        {loading ? <h2 className="text-4xl font-extrabold dark:text-white">Loading...</h2>
-                 : <h2 className="text-xl font-extrabold dark:text-white">Here's your screen time for today!</h2>
+        {loading ? <h2 className="mt-4 text-4xl font-extrabold dark:text-white">Loading...</h2>
+                 : <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for today</h2>
         }
 
-      {/* <table className="table-auto mt-4">
-        <thead>
-          <tr>
-            <th>Website</th>
-            <th>Time</th>
-            <th>Limits</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.keys(processedData).map((key) => (
-            <tr>
-              <td>{key}</td>
-              <td>{processedData[key]}</td>
-              <td></td>
-            </tr>
-          ))}
-        </tbody>
-      </table> */}
-
-        <div className="flex flex-col">
+        <div className="my-4 flex flex-col">
           <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
               <div className="overflow-hidden">
@@ -118,9 +101,15 @@ export default function Home() {
                           <div className="flex items-center">
                             <Image 
                               src={"https://www.google.com/s2/favicons?domain=" + key + "&sz=32"}
+                              // src={"https://api.faviconkit.com/" + key + "/32"}
                               width={32}
                               height={32}
-                              alt="website icon"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "https://avikam.vercel.app/favicon.ico";
+                                // target.src={"https://icon.horse/icon/" + key}
+                              }}
+                              alt=":("
                             />
                             <div className="ml-2">{key}</div>
                           </div>
@@ -128,7 +117,7 @@ export default function Home() {
                         <td className="whitespace-nowrap px-6 py-4">
                           {   
                             processedData[key] > 3600
-                              ? Math.floor(processedData[key] / 3600) + "h " + Math.round((processedData[key] % 3600) / 60) + "m" // If time is more than an hour
+                              ? Math.floor(processedData[key] / 3600) + "h " + Math.floor((processedData[key] % 3600) / 60) + "m" // If time is more than an hour
                               : processedData[key] > 60
                               ? Math.round(processedData[key] / 60) + "min" // If time is more than 1 minute
                               : Math.round(processedData[key]) + "s" // If time is less than one minute
@@ -145,10 +134,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-
-
-      </div>
+      </body>
     </main>
   )
 }
