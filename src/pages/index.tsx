@@ -33,10 +33,14 @@ export default function Home() {
             setProcessedData(todaysdata);
   
             var weekData = [];
-            for (var i = 0; i < 7; i++) {
-              weekData.push(result[i.toString()]?.total || 0);
-            }
-  
+            weekData.push(result["0"]?.total || 0)
+            weekData.push(result["1"]?.total || 0)
+            weekData.push(result["2"]?.total || 0)
+            weekData.push(result["3"]?.total || 0)  
+            weekData.push(result["4"]?.total || 0)
+            weekData.push(result["5"]?.total || 0)
+            weekData.push(result["6"]?.total || 0)
+          
             setWeekData(weekData);
           }
   
@@ -104,11 +108,11 @@ export default function Home() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
                           {   
-                            processedData[key] > 3600
-                              ? Math.floor(processedData[key] / 3600) + "h " + Math.floor((processedData[key] % 3600) / 60) + "m" // If time is more than an hour
-                              : processedData[key] > 60
-                              ? Math.floor(processedData[key] / 60) + "min" // If time is more than 1 minute
-                              : Math.floor(processedData[key]) + "s" // If time is less than one minute
+                            Math.ceil(processedData[key]) > 3600
+                              ? Math.floor(Math.ceil(processedData[key]) / 3600) + "h " + Math.floor((Math.ceil(processedData[key]) % 3600) / 60) + "m" // If time is more than an hour
+                              : Math.ceil(processedData[key]) > 60
+                              ? Math.floor(Math.ceil(processedData[key]) / 60) + "min" // If time is more than 1 minute
+                              : Math.floor(Math.ceil(processedData[key])) + "s" // If time is less than one minute
                           }
                         </td>
                         <td className="whitespace-nowrap px-6 py-4"></td>
