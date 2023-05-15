@@ -2,6 +2,8 @@ import Image from 'next/image';
 import { Inter } from 'next/font/google';
 import { useState, useEffect } from 'react';
 
+import WeekGraph from '../components/weekgraph';
+
 const inter = Inter({ subsets: ['latin'] });
 
 type ScreenTime = {
@@ -13,21 +15,31 @@ type ScreenTime = {
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [processedData, setProcessedData] = useState({} as { [key: string]: number });
+  const [weekData, setWeekData] = useState([] as number[]);
 
   useEffect(() => {
     setLoading(true);
-
+  
     // Run the code only on the client-side
     if (typeof window !== 'undefined') {
       import('../../public/storage.js').then((storage) => {
-        storage.default.get('limitify_data').then((result : ScreenTime) => {
-          var curDate = new Date();
-          
-          var todaysdata : { [key: string]: number } = result[(curDate.getDay()).toString()]; // get the data for today
-          var sortedData = Object.entries(todaysdata).sort((a, b) => b[1] - a[1]);
-          todaysdata = Object.fromEntries(sortedData);
-
-          setProcessedData(todaysdata);
+        storage.default.get('limitify_data').then((result: ScreenTime | null | undefined) => {
+          if (result) {
+            var curDate = new Date();
+  
+            var todaysdata: { [key: string]: number } = result[(curDate.getDay()).toString()] || {}; // get the data for today
+            var sortedData = Object.entries(todaysdata).sort((a, b) => b[1] - a[1]);
+            todaysdata = Object.fromEntries(sortedData);
+            setProcessedData(todaysdata);
+  
+            var weekData = [];
+            for (var i = 0; i < 7; i++) {
+              weekData.push(result[i.toString()]?.total || 0);
+            }
+  
+            setWeekData(weekData);
+          }
+  
           setLoading(false);
         });
       });
@@ -42,8 +54,22 @@ export default function Home() {
       <div className="py-4 place-items-center before:absolute before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40">
 
         {loading ? <h2 className="mt-4 text-4xl font-extrabold dark:text-white">Loading...</h2>
-                 : <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for today</h2>
+                 : null
         }
+
+        <h2 className="mt-4 text-xl font-extrabold dark:text-white">Usage</h2>
+
+        <ul>
+          {weekData.map((item) =>
+          <li key={item.toString()}>
+            {item}
+          </li>
+          )}
+        </ul>
+
+        <WeekGraph data={weekData}/>
+        
+        <h2 className="mt-4 text-lg font-extrabold dark:text-white">Screen time for today</h2>
 
         <div className="my-4 flex flex-col">
           <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">

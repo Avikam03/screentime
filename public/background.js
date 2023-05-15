@@ -92,8 +92,16 @@ const storage = {
 						result[startDate.getDay().toString()][value.url] = 0;
 					}
 
-					result[startDate.getDay().toString()][value.url] += Math.abs(startDate.getTime() - endDate.getTime()) / 1000;
-					console.log("seconds for " + value + ": " + result[startDate.getDay().toString()][value.url]);
+					if (!result[startDate.getDay().toString()]["total"]) {
+						result[startDate.getDay().toString()]["total"] = 0;
+					}
+					
+					var toadd = Math.abs(startDate.getTime() - endDate.getTime()) / 1000;
+					result[startDate.getDay().toString()][value.url] += toadd;
+					result[startDate.getDay().toString()]["total"] += toadd;
+					
+					console.log("just added " + toadd + "seconds")
+					console.log("updated seconds for " + value + ": " + result[startDate.getDay().toString()][value.url]);
 
 					this.set(key, result).then(() => {
 						resolve();
