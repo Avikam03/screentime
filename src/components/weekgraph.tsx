@@ -38,14 +38,18 @@ const WeekGraph: React.FC<WeekGraphProps> = ({ data }) => {
 
     const yAxis = d3
       .axisRight(yScale)
-      .ticks(3)
+      .ticks(2)
       .tickFormat((d) => {
         if (yMax < 60) {
+          // console.log(`${d}s`);
           return `${d}s`; // Format as seconds
         } else if (yMax < 3600) {
-          return `${Math.floor(Number(d) / 60)}m`; // Format as minutes
+          // console.log(`${Math.floor(Number(d) / 60)}m`);
+          // return `${Math.floor(Number(d) / 60)}m`; // Format as minutes
+          return `${Math.round(Number(d) / 60)}m`; // Format as minutes
         } else {
-          return `${Math.floor(Number(d) / 3600)}h`; // Format as hours
+          // console.log(`${Math.floor(Number(d) / 3600)}h`);
+          return `${Math.round(Number(d) / 3600)}h`; // Format as hours
         }
       });
 
