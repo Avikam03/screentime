@@ -17,15 +17,11 @@ const storage = {
 			const curweekstartPromise = this.get("limitify_curweek_start");
 			const curweekendPromise = this.get("limitify_curweek_end");
 
-			console.log("here1");
-
 			Promise.all([curweekstartPromise, curweekendPromise]).then(([curweekstart, curweekend]) => {
-				console.log("here2");
 				curweekstart = new Date(curweekstart);
 				curweekend = new Date(curweekend);
 
 				if (startDate <= curweekend && endDate > curweekend) {
-					console.log("here3");
 					value.endTime = curweekend;
 					this.add(value).then(() => {
 						resolve();
@@ -39,7 +35,6 @@ const storage = {
 				}
 						
 				if (startDate > curweekend) {
-					console.log("here4");
 					// new week
 					// set curweekstart to start of new week
 					// set curweekend to end of new week
@@ -65,10 +60,8 @@ const storage = {
 				// at this point, we know that
 				// startDate <= curweekend && endDate <= curweekend
 				// however, it's still possible that startDate and endDate span across multiple days
-				
-				console.log("here5");
+			
 				if (startDate.getDay() !== endDate.getDay()) {
-					console.log("here6");
 					value.endTime = new Date(startDate);
 					value.endTime.setHours(23, 59, 59, 999);
 					this.add(value).then(() => {
@@ -83,7 +76,6 @@ const storage = {
 				// at this point, we know that
 				// startDate.getDay() == endDate.getDay()
 				
-				console.log("here7");
 				this.get(key).then((result) => {
 					if (!result[startDate.getDay().toString()]) {
 						result[startDate.getDay().toString()] = {};
@@ -146,11 +138,11 @@ Promise.all([
 	storage.set("limitify_curweek_start", startweek),
 	storage.set("limitify_curweek_end", endweek),
 	storage.set("limitify_data", {})
-  ]).then(() => {
+]).then(() => {
 	console.log("Storage Initialization complete.");
-  }).catch((error) => {
+}).catch((error) => {
 	console.error("Storage Initialization failed:", error);
-  });
+});
 
   
 chrome.windows.onFocusChanged.addListener((windowId) => {	

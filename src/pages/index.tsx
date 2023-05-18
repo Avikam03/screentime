@@ -53,27 +53,29 @@ export default function Home() {
   return (
 
     <main
-      className={`flex min-h-screen flex-col items-center justify-between ${inter.className}`}
+      className={`min-h-screen items-center justify-between ${inter.className}`}
     >
-      <div className="py-4 place-items-center before:absolute before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40">
+      <div className="mx-3 my-3 place-items-center before:absolute before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40">
 
         {loading ? <h2 className="mt-4 text-4xl font-extrabold dark:text-white">Loading...</h2>
                  : null
         }
 
-        <h2 className="mt-4 text-xl font-extrabold dark:text-white">Usage</h2>
-
-        <ul>
-          {weekData.map((item) =>
-          <li key={item.toString()}>
-            {item}
-          </li>
-          )}
-        </ul>
+        <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for the week</h2>
 
         <WeekGraph data={weekData}/>
         
-        <h2 className="mt-4 text-lg font-extrabold dark:text-white">Screen time for today</h2>
+        <h2 className="mt-4 text-lg dark:text-white">Usage</h2>
+        <h1 className="mt-2 text-4xl font-extrabold dark:text-white"> 
+          { processedData['total'] == undefined
+            ? "no data recorded yet"
+            : Math.ceil(processedData['total']) > 3600
+            ? Math.floor(Math.ceil(processedData['total']) / 3600) + "h " + Math.floor((Math.ceil(processedData['total']) % 3600) / 60) + "min" // If time is more than an hour
+            : Math.ceil(processedData['total']) > 60
+            ? Math.floor(Math.ceil(processedData['total']) / 60) + "min" // If time is more than 1 minute
+            : Math.floor(Math.ceil(processedData['total'])) + "s" // If time is less than one minute
+          } 
+        </h1>
 
         <div className="my-4 flex flex-col">
           <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -89,6 +91,7 @@ export default function Home() {
                   </thead>
                   <tbody>
                     {Object.keys(processedData).map((key) => (
+                      key != "total" &&
                       <tr className="border-b dark:border-neutral-500">
                         <td className="whitespace-nowrap px-6 py-4 font-medium">
                           <div className="flex items-center">
@@ -109,7 +112,7 @@ export default function Home() {
                         <td className="whitespace-nowrap px-6 py-4">
                           {   
                             Math.ceil(processedData[key]) > 3600
-                              ? Math.floor(Math.ceil(processedData[key]) / 3600) + "h " + Math.floor((Math.ceil(processedData[key]) % 3600) / 60) + "m" // If time is more than an hour
+                              ? Math.floor(Math.ceil(processedData[key]) / 3600) + "h " + Math.floor((Math.ceil(processedData[key]) % 3600) / 60) + "min" // If time is more than an hour
                               : Math.ceil(processedData[key]) > 60
                               ? Math.floor(Math.ceil(processedData[key]) / 60) + "min" // If time is more than 1 minute
                               : Math.floor(Math.ceil(processedData[key])) + "s" // If time is less than one minute
