@@ -2,53 +2,48 @@ import Image from 'next/image';
 import { Inter } from 'next/font/google';
 import { useState, useEffect } from 'react';
 
+import WeekGraph from '../components/weekgraph';
+
 const inter = Inter({ subsets: ['latin'] });
 
 type ScreenTime = {
-  id: string;
-  url: string;
-  title: string;
-  startTime: Date;
-  endTime: Date;
+  [key: string]: {
+    [key: string]: number;
+  };
 };
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [processedData, setProcessedData] = useState({} as { [key: string]: number });
+  const [weekData, setWeekData] = useState([] as number[]);
 
   useEffect(() => {
     setLoading(true);
-
+  
     // Run the code only on the client-side
     if (typeof window !== 'undefined') {
       import('../../public/storage.js').then((storage) => {
-        var rawData: ScreenTime[] = [];
-
-        storage.default.get('limitify_raw').then((result: ScreenTime[]) => {
-          rawData = result;
-          console.log('rawData:', JSON.stringify(rawData));
-        });
-
-        storage.default.set('limitify_raw', []);
-
-        storage.default.get('limitify_processed').then((result: { [key: string]: number }) => {
-          console.log('processed:', JSON.stringify(result));
-
-          rawData.forEach((element) => {
-            var date1 = new Date(element.endTime);
-            var date2 = new Date(element.startTime);
-            if (result[element.url] === undefined) {
-              result[element.url] = 0;
-            }
-            result[element.url] += Math.abs(date1.getTime() - date2.getTime()) / 1000;
-            console.log(`Just added ${Math.abs(date1.getTime() - date2.getTime()) / 1000} seconds to ${element.url}`);
-          });
-
-          var sortedData = Object.entries(result).sort((a, b) => b[1] - a[1]);
-          result = Object.fromEntries(sortedData);
-
-          storage.default.set('limitify_processed', result);
-          setProcessedData(result);
+        storage.default.get('limitify_data').then((result: ScreenTime | null | undefined) => {
+          if (result) {
+            var curDate = new Date();
+  
+            var todaysdata: { [key: string]: number } = result[(curDate.getDay()).toString()] || {}; // get the data for today
+            var sortedData = Object.entries(todaysdata).sort((a, b) => b[1] - a[1]);
+            todaysdata = Object.fromEntries(sortedData);
+            setProcessedData(todaysdata);
+  
+            var weekData = [];
+            weekData.push(result["0"]?.total || 0)
+            weekData.push(result["1"]?.total || 0)
+            weekData.push(result["2"]?.total || 0)
+            weekData.push(result["3"]?.total || 0)  
+            weekData.push(result["4"]?.total || 0)
+            weekData.push(result["5"]?.total || 0)
+            weekData.push(result["6"]?.total || 0)
+          
+            setWeekData(weekData);
+          }
+  
           setLoading(false);
         });
       });
@@ -58,13 +53,29 @@ export default function Home() {
   return (
 
     <main
-      className={`flex min-h-screen flex-col items-center justify-between ${inter.className}`}
+      className={`min-h-screen items-center justify-between ${inter.className}`}
     >
-      <div className="py-4 place-items-center before:absolute before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40">
+      <div className="mx-3 my-3 place-items-center before:absolute before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40">
 
         {loading ? <h2 className="mt-4 text-4xl font-extrabold dark:text-white">Loading...</h2>
-                 : <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for today</h2>
+                 : null
         }
+
+        <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for the week</h2>
+
+        <WeekGraph data={weekData}/>
+        
+        <h2 className="mt-4 text-lg dark:text-white">Usage</h2>
+        <h1 className="mt-2 text-4xl font-extrabold dark:text-white"> 
+          { processedData['total'] == undefined
+            ? "no data recorded yet"
+            : Math.ceil(processedData['total']) > 3600
+            ? Math.floor(Math.ceil(processedData['total']) / 3600) + "h " + Math.floor((Math.ceil(processedData['total']) % 3600) / 60) + "min" // If time is more than an hour
+            : Math.ceil(processedData['total']) > 60
+            ? Math.floor(Math.ceil(processedData['total']) / 60) + "min" // If time is more than 1 minute
+            : Math.floor(Math.ceil(processedData['total'])) + "s" // If time is less than one minute
+          } 
+        </h1>
 
         <div className="my-4 flex flex-col">
           <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -80,6 +91,7 @@ export default function Home() {
                   </thead>
                   <tbody>
                     {Object.keys(processedData).map((key) => (
+                      key != "total" &&
                       <tr className="border-b dark:border-neutral-500">
                         <td className="whitespace-nowrap px-6 py-4 font-medium">
                           <div className="flex items-center">
@@ -99,11 +111,11 @@ export default function Home() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
                           {   
-                            processedData[key] > 3600
-                              ? Math.floor(processedData[key] / 3600) + "h " + Math.floor((processedData[key] % 3600) / 60) + "m" // If time is more than an hour
-                              : processedData[key] > 60
-                              ? Math.floor(processedData[key] / 60) + "min" // If time is more than 1 minute
-                              : Math.floor(processedData[key]) + "s" // If time is less than one minute
+                            Math.ceil(processedData[key]) > 3600
+                              ? Math.floor(Math.ceil(processedData[key]) / 3600) + "h " + Math.floor((Math.ceil(processedData[key]) % 3600) / 60) + "min" // If time is more than an hour
+                              : Math.ceil(processedData[key]) > 60
+                              ? Math.floor(Math.ceil(processedData[key]) / 60) + "min" // If time is more than 1 minute
+                              : Math.floor(Math.ceil(processedData[key])) + "s" // If time is less than one minute
                           }
                         </td>
                         <td className="whitespace-nowrap px-6 py-4"></td>

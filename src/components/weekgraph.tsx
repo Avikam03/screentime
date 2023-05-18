@@ -1,73 +1,80 @@
-import * as d3 from "d3";
-import { useState, useEffect } from 'react'
+import React, { useEffect, useRef } from 'react';
+import * as d3 from 'd3';
 
-export default function WeekGraph() {
+interface WeekGraphProps {
+  data: number[]; // Array of seconds
+}
 
-  // set the dimensions and margins of the graph
-  const margin = { top: 30, right: 30, bottom: 70, left: 60 };
-  const width = 460 - margin.left - margin.right;
-  const height = 400 - margin.top - margin.bottom;
+const WeekGraph: React.FC<WeekGraphProps> = ({ data }) => {
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
-  type Entry = {
-    Country: string;
-    Value: number;
-  };
-  
+  const width = 500;
+  const height = width / 3;
+  const margin = { top: 20, right: 40, bottom: 20, left: 15 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+
   useEffect(() => {
-    // append the svg object to the body of the page
-    const svg = d3
-    .select("#weekgraph")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+    if (data.length === 0) return;
 
-    // Parse the Data
-    d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/7_OneCatOneNum_header.csv")
-      .then(function (data) {
+    const svg = d3.select(svgRef.current);
+    svg.attr('viewBox', `0 0 ${width} ${height}`);
 
-        // const countries = data
-        // .map((d) => d.Country)
-        // .filter((country): country is string => country !== undefined);
+    const xScale = d3
+      .scaleBand()
+      .domain(['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'])
+      .range([margin.left, width - margin.right])
+      .paddingInner(0.2)
+      .paddingOuter(0.1);
 
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const yMax = Math.max(...data); // Maximum value in seconds
 
-        // X axis
-        const x = d3
-        .scaleBand()
-        .range([0, width])
-        .domain(days)
-        .padding(0.2);
-    
-        svg
-          .append("g")
-          .attr("transform", `translate(0,${height})`)
-          .call(d3.axisBottom(x))
-          .selectAll("text")
-          .attr("transform", "translate(-10,0)rotate(-45)")
-          .style("text-anchor", "end");
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, yMax])
+      .range([chartHeight, margin.top]);
 
-        // Add Y axis
-        const y = d3.scaleLinear().domain([0, 13000]).range([height, 0]);
-        svg.append("g").call(d3.axisLeft(y));
+    const xAxis = d3.axisBottom(xScale);
 
-        // Bars
-        svg
-          .selectAll("mybar")
-          .data(data)
-          .enter()
-          .append("rect")
-          // .attr("x", function(d) { return x(d); })
-          // .attr("y", function(d) { return y(d.Value); })
-          .attr("width", x.bandwidth())
-          // .attr("height", function(d) { return height - y(d.Value); })
-          .attr("fill", "#69b3a2");
+    const yAxis = d3
+      .axisRight(yScale)
+      .ticks(3)
+      .tickFormat((d) => {
+        if (yMax < 60) {
+          return `${d}s`; // Format as seconds
+        } else if (yMax < 3600) {
+          return `${Math.floor(Number(d) / 60)}m`; // Format as minutes
+        } else {
+          return `${Math.floor(Number(d) / 3600)}h`; // Format as hours
+        }
       });
-  }, [])
 
-  return <div id="weekgraph"></div>;
+    svg
+      .select<SVGGElement>('.x-axis')
+      .attr('transform', `translate(0, ${chartHeight})`)
+      .call(xAxis);
+    svg
+      .select<SVGGElement>('.y-axis')
+      .attr('transform', `translate(${width - margin.right}, 0)`)
+      .call(yAxis);
+    svg
+      .selectAll('.bar')
+      .data(data)
+      .join('rect')
+      .attr('class', 'bar')
+      .attr('x', (d, i) => xScale(['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][i]) || 0)
+      .attr('y', (d) => yScale(d)) // Use yScale directly without dividing by 60
+      .attr('width', xScale.bandwidth())
+      .attr('height', (d) => chartHeight - yScale(d)) // Use yScale directly without dividing by 60
+      .attr('fill', '#007AFF');
+  }, [data]);
+
+  return (
+    <svg ref={svgRef} width={width} height={height}>
+      <g className="x-axis" />
+      <g className="y-axis" />
+    </svg>
+  );
 };
 
-
-
+export default WeekGraph;
