@@ -75,21 +75,15 @@ export default function Home() {
 
   return (
 
-    <main
-      className={`min-h-screen items-center justify-between ${inter.className}`}
-    >
-      <div className="mx-3 my-3 place-items-center before:absolute before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40">
-
+    <main className={`min-h-screen items-center justify-between ${inter.className}`}>
+      <div className="mx-3 my-3 place-items-center">
         {loading ? <h2 className="mt-4 text-4xl font-extrabold dark:text-white">Loading...</h2>
                  : null
         }
-
-        <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for the week</h2>
-
-        <WeekGraph data={weekData} selectedBarIndex={selectedBarIndex} onBarClick={handleBarClick} />
+        {/* <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for the week</h2> */}
         
         <h2 className="mt-4 text-lg dark:text-white">Usage</h2>
-        <h1 className="mt-2 text-4xl font-extrabold dark:text-white"> 
+        <h1 className="mt-2 text-4xl dark:text-white"> 
           { processedData['total'] == undefined
             ? "no data recorded yet"
             : Math.ceil(processedData['total']) > 3600
@@ -99,6 +93,8 @@ export default function Home() {
             : Math.floor(Math.ceil(processedData['total'])) + "s" // If time is less than one minute
           } 
         </h1>
+        
+        <WeekGraph data={weekData} selectedBarIndex={selectedBarIndex} onBarClick={handleBarClick} />
 
         <div className="my-4 flex flex-col">
           <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -114,7 +110,7 @@ export default function Home() {
                   </thead>
                   <tbody>
                     {Object.keys(processedData).map((key) => (
-                      key != "total" &&
+                      key != "total" && key != "" &&
                       <tr className="border-b dark:border-neutral-500">
                         <td className="whitespace-nowrap px-6 py-4 font-medium">
                           <div className="flex items-center">
