@@ -60,6 +60,38 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    setLoading(true);
+  
+    // Run the code only on the client-side
+    if (typeof window !== 'undefined') {
+      import('../../public/storage.js').then((storage) => {
+        storage.default.get('limitify_data').then((result: ScreenTime | null | undefined) => {
+          if (result) {
+  
+            var daydata: { [key: string]: number } = result[(selectedBarIndex).toString()] || {}; // get the data for today
+            var sortedData = Object.entries(daydata).sort((a, b) => b[1] - a[1]);
+            daydata = Object.fromEntries(sortedData);
+            setProcessedData(daydata);
+
+            var weekData = [];
+            weekData.push(result["0"]?.total || 0)
+            weekData.push(result["1"]?.total || 0)
+            weekData.push(result["2"]?.total || 0)
+            weekData.push(result["3"]?.total || 0)  
+            weekData.push(result["4"]?.total || 0)
+            weekData.push(result["5"]?.total || 0)
+            weekData.push(result["6"]?.total || 0)
+          
+            setWeekData(weekData);
+          }
+  
+          setLoading(false);
+        });
+      });
+    }
+  }, [selectedBarIndex]);
+
   return (
 
     <main

@@ -13,7 +13,7 @@ const WeekGraph: React.FC<WeekGraphProps> = ({ data, onBarClick, selectedBarInde
 
   const width = 500;
   const height = width / 3;
-  const margin = { top: 20, right: 40, bottom: 20, left: 15 };
+  const margin = { top: 20, right: 50, bottom: 20, left: 15 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
@@ -51,9 +51,9 @@ const WeekGraph: React.FC<WeekGraphProps> = ({ data, onBarClick, selectedBarInde
         if (yMax < 60) {
           return `${d}s`; // Format as seconds
         } else if (yMax < 3600) {
-          return `${Math.round(Number(d) / 60)}m`; // Format as minutes
+          return `${Math.round((Number(d) / 60) * 10) / 10}m`; // Format as minutes
         } else {
-          return `${Math.round(Number(d) / 3600)}h`; // Format as hours
+          return `${Math.round((Number(d) / 3600) * 10) / 10}h`; // Format as hours
         }
       });
 
