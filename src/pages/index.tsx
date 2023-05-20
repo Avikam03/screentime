@@ -16,6 +16,13 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [processedData, setProcessedData] = useState({} as { [key: string]: number });
   const [weekData, setWeekData] = useState([] as number[]);
+  const [selectedBarIndex, setSelectedBarIndex] = useState(0);
+
+  const handleBarClick = (index: number) => {
+    console.log("just set it to " + index)
+    setSelectedBarIndex(index);
+    // Do something with the selected bar data
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -26,6 +33,9 @@ export default function Home() {
         storage.default.get('limitify_data').then((result: ScreenTime | null | undefined) => {
           if (result) {
             var curDate = new Date();
+
+            setSelectedBarIndex(curDate.getDay());
+            console.log("just initialised selectebarindex to " + curDate.getDay());
   
             var todaysdata: { [key: string]: number } = result[(curDate.getDay()).toString()] || {}; // get the data for today
             var sortedData = Object.entries(todaysdata).sort((a, b) => b[1] - a[1]);
@@ -50,6 +60,38 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    setLoading(true);
+  
+    // Run the code only on the client-side
+    if (typeof window !== 'undefined') {
+      import('../../public/storage.js').then((storage) => {
+        storage.default.get('limitify_data').then((result: ScreenTime | null | undefined) => {
+          if (result) {
+  
+            var daydata: { [key: string]: number } = result[(selectedBarIndex).toString()] || {}; // get the data for today
+            var sortedData = Object.entries(daydata).sort((a, b) => b[1] - a[1]);
+            daydata = Object.fromEntries(sortedData);
+            setProcessedData(daydata);
+
+            var weekData = [];
+            weekData.push(result["0"]?.total || 0)
+            weekData.push(result["1"]?.total || 0)
+            weekData.push(result["2"]?.total || 0)
+            weekData.push(result["3"]?.total || 0)  
+            weekData.push(result["4"]?.total || 0)
+            weekData.push(result["5"]?.total || 0)
+            weekData.push(result["6"]?.total || 0)
+          
+            setWeekData(weekData);
+          }
+  
+          setLoading(false);
+        });
+      });
+    }
+  }, [selectedBarIndex]);
+
   return (
 
     <main
@@ -63,7 +105,7 @@ export default function Home() {
 
         <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for the week</h2>
 
-        <WeekGraph data={weekData}/>
+        <WeekGraph data={weekData} selectedBarIndex={selectedBarIndex} onBarClick={handleBarClick} />
         
         <h2 className="mt-4 text-lg dark:text-white">Usage</h2>
         <h1 className="mt-2 text-4xl font-extrabold dark:text-white"> 

@@ -1,18 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
 interface WeekGraphProps {
   data: number[]; // Array of seconds
+  onBarClick: (index: number) => void; // Callback function for bar click
+  selectedBarIndex: number; // Index of the initially selected bar
 }
 
-const WeekGraph: React.FC<WeekGraphProps> = ({ data }) => {
+const WeekGraph: React.FC<WeekGraphProps> = ({ data, onBarClick, selectedBarIndex }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const [selectedBar, setSelectedBar] = useState(selectedBarIndex);
 
   const width = 500;
   const height = width / 3;
-  const margin = { top: 20, right: 40, bottom: 20, left: 15 };
+  const margin = { top: 20, right: 50, bottom: 20, left: 15 };
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
+
+  useEffect(() => {
+    var curDate = new Date();
+    setSelectedBar(curDate.getDay());
+  }, []);
 
   useEffect(() => {
     if (data.length === 0) return;
@@ -41,15 +49,11 @@ const WeekGraph: React.FC<WeekGraphProps> = ({ data }) => {
       .ticks(2)
       .tickFormat((d) => {
         if (yMax < 60) {
-          // console.log(`${d}s`);
           return `${d}s`; // Format as seconds
         } else if (yMax < 3600) {
-          // console.log(`${Math.floor(Number(d) / 60)}m`);
-          // return `${Math.floor(Number(d) / 60)}m`; // Format as minutes
-          return `${Math.round(Number(d) / 60)}m`; // Format as minutes
+          return `${Math.round((Number(d) / 60) * 10) / 10}m`; // Format as minutes
         } else {
-          // console.log(`${Math.floor(Number(d) / 3600)}h`);
-          return `${Math.round(Number(d) / 3600)}h`; // Format as hours
+          return `${Math.round((Number(d) / 3600) * 10) / 10}h`; // Format as hours
         }
       });
 
@@ -67,11 +71,18 @@ const WeekGraph: React.FC<WeekGraphProps> = ({ data }) => {
       .join('rect')
       .attr('class', 'bar')
       .attr('x', (d, i) => xScale(['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][i]) || 0)
-      .attr('y', (d) => yScale(d)) // Use yScale directly without dividing by 60
+      .attr('y', (d) => yScale(d))
       .attr('width', xScale.bandwidth())
-      .attr('height', (d) => chartHeight - yScale(d)) // Use yScale directly without dividing by 60
-      .attr('fill', '#007AFF');
-  }, [data]);
+      .attr('height', (d) => chartHeight - yScale(d))
+      .attr('fill', (d, i) => (i === selectedBar ? '#007AFF' : '#CCCCCC'))
+      .on('click', (event, d) => {
+        var clickedBar = d3.select(event.currentTarget);
+        var bars = svg.selectAll("rect").nodes();
+        var i = bars.indexOf(clickedBar.node());
+        setSelectedBar(i);
+        onBarClick(i);
+      });
+  }, [data, onBarClick, selectedBar]);
 
   return (
     <svg ref={svgRef} width={width} height={height}>
