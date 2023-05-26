@@ -1,3 +1,5 @@
+// import chromeurls from './chromeurls';
+
 var storageCurTabReal = {
 	id: null,
 	url: "newtab",
@@ -148,7 +150,9 @@ Promise.all([
 chrome.windows.onFocusChanged.addListener((windowId) => {	
   if (windowId === chrome.windows.WINDOW_ID_NONE) {	
     // set end time of cur tab in storage to right now	
-    if (storageCurTabReal.url !== "newtab") {	
+    // if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
+		// console.log("just added " + "chrome://" + storageCurTabReal.url);
+	if (storageCurTabReal.url !== "newtab") {	
 		storageCurTabReal.endTime = Date.now();	
 		console.log(storageCurTabReal);	
 		storage.add(storageCurTabReal).then(() => {	
@@ -169,6 +173,8 @@ function changedTo(tabId, tab) {
 	var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);	
 	// var changeurl = tab.url === "" ? "chrome://newtab/" : tab.url;	
 	changeurl.hostname !== "newtab" ? console.log("changedTo: " + changeurl) : null;	
+	// if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
+		// console.log("just added " + "chrome://" + storageCurTabReal.url);
 	if (storageCurTabReal.url !== "newtab") {	
 		storageCurTabReal.endTime = Date.now();	
 		console.log(storageCurTabReal);	

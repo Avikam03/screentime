@@ -17,6 +17,7 @@ export default function Home() {
   const [processedData, setProcessedData] = useState({} as { [key: string]: number });
   const [weekData, setWeekData] = useState([] as number[]);
   const [selectedBarIndex, setSelectedBarIndex] = useState(0);
+  const [todayIndex, setTodayIndex] = useState(0);
   const [allData, setAllData] = useState<ScreenTime>({});
 
   const handleBarClick = (index: number) => {
@@ -36,6 +37,7 @@ export default function Home() {
             var curDate = new Date();
 
             setSelectedBarIndex(curDate.getDay());
+            setTodayIndex(curDate.getDay());
             console.log("just initialised selectebarindex to " + curDate.getDay());
             
             setAllData(result);
@@ -105,7 +107,7 @@ export default function Home() {
                     <tr>
                       <th scope="col" className="px-6 py-4">Website</th>
                       <th scope="col" className="px-6 py-4">Time</th>
-                      <th scope="col" className="px-6 py-4">Limit</th>
+                      {selectedBarIndex == todayIndex ? <th scope="col" className="px-6 py-4">Limit</th> : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -137,7 +139,15 @@ export default function Home() {
                               : Math.floor(Math.ceil(processedData[key])) + "s" // If time is less than one minute
                           }
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4"></td>
+
+                        {selectedBarIndex == todayIndex ?
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <button>
+                            +
+                          </button>
+                        </td>
+                        : null}
+                        
                       </tr>
                     ))}
                   </tbody>
