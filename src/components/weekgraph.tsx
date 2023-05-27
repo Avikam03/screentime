@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
+import React, { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
 
 interface WeekGraphProps {
   data: number[]; // Array of seconds
@@ -7,7 +7,11 @@ interface WeekGraphProps {
   selectedBarIndex: number; // Index of the initially selected bar
 }
 
-const WeekGraph: React.FC<WeekGraphProps> = ({ data, onBarClick, selectedBarIndex }) => {
+const WeekGraph: React.FC<WeekGraphProps> = ({
+  data,
+  onBarClick,
+  selectedBarIndex,
+}) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [selectedBar, setSelectedBar] = useState(selectedBarIndex);
 
@@ -26,11 +30,11 @@ const WeekGraph: React.FC<WeekGraphProps> = ({ data, onBarClick, selectedBarInde
     if (data.length === 0) return;
 
     const svg = d3.select(svgRef.current);
-    svg.attr('viewBox', `0 0 ${width} ${height}`);
+    svg.attr("viewBox", `0 0 ${width} ${height}`);
 
     const xScale = d3
       .scaleBand()
-      .domain(['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'])
+      .domain(["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"])
       .range([margin.left, width - margin.right])
       .paddingInner(0.3)
       .paddingOuter(0.2);
@@ -58,26 +62,29 @@ const WeekGraph: React.FC<WeekGraphProps> = ({ data, onBarClick, selectedBarInde
       });
 
     svg
-      .select<SVGGElement>('.x-axis')
-      .attr('transform', `translate(0, ${chartHeight})`)
+      .select<SVGGElement>(".x-axis")
+      .attr("transform", `translate(0, ${chartHeight})`)
       .call(xAxis);
     svg
-      .select<SVGGElement>('.y-axis')
-      .attr('transform', `translate(${width - margin.right}, 0)`)
+      .select<SVGGElement>(".y-axis")
+      .attr("transform", `translate(${width - margin.right}, 0)`)
       .call(yAxis);
     svg
-      .selectAll('.bar')
+      .selectAll(".bar")
       .data(data)
-      .join('rect')
-      .attr('class', 'bar')
-      .attr('x', (d, i) => xScale(['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][i]) || 0)
-      .attr('y', (d) => yScale(d))
-      .attr('width', xScale.bandwidth())
-      .attr('height', (d) => chartHeight - yScale(d))
-      .attr('fill', (d, i) => (i === selectedBar ? '#007AFF' : '#565657'))
-      .attr('rx', 4) // Rounded corner radius for x-axis
-      .attr('ry', 4) // Rounded corner radius for y-axis
-      .on('click', (event, d) => {
+      .join("rect")
+      .attr("class", "bar")
+      .attr(
+        "x",
+        (d, i) => xScale(["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"][i]) || 0
+      )
+      .attr("y", (d) => yScale(d))
+      .attr("width", xScale.bandwidth())
+      .attr("height", (d) => chartHeight - yScale(d))
+      .attr("fill", (d, i) => (i === selectedBar ? "#007AFF" : "#565657"))
+      .attr("rx", 4) // Rounded corner radius for x-axis
+      .attr("ry", 4) // Rounded corner radius for y-axis
+      .on("click", (event, d) => {
         var clickedBar = d3.select(event.currentTarget);
         var bars = svg.selectAll("rect").nodes();
         var i = bars.indexOf(clickedBar.node());

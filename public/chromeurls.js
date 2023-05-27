@@ -75,7 +75,7 @@ const chromeURLs = [
   "chrome://webrtc-internals",
   "chrome://webrtc-logs",
   "chrome://whats-new",
-  "chrome://internals/session-service"
+  "chrome://internals/session-service",
 ];
 
 export default chromeURLs;
