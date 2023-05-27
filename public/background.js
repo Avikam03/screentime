@@ -174,7 +174,7 @@ const storage = {
             result[startDate.getDay().toString()][value.url] += toadd;
             result[startDate.getDay().toString()]["total"] += toadd;
 
-            console.log("just added " + toadd + "seconds to " + value.url);
+            // console.log("just added " + toadd + "seconds to " + value.url);
 
             this.set(key, result).then(() => {
               resolve();
@@ -204,8 +204,6 @@ const storage = {
 };
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("hello world");
-
   var currentdate = new Date();
   var startweek = new Date(currentdate);
   startweek.setDate(currentdate.getDate() - currentdate.getDay());
@@ -222,7 +220,7 @@ chrome.runtime.onInstalled.addListener(() => {
     storage.set("limitify_blocked", {}),
   ])
     .then(() => {
-      console.log("Initialised storage.");
+      console.log("initialised storage.");
     })
     .catch((error) => {
       console.error("Failed to initialise storage", error);
@@ -243,12 +241,10 @@ function getCurrentTab() {
 }
 
 chrome.windows.onFocusChanged.addListener((windowId) => {
-  console.log("window changed");
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     // set end time of cur tab in storage to right now
     if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
       storageCurTabReal.endTime = Date.now();
-      // console.log(storageCurTabReal);
       storage
         .add(storageCurTabReal)
         .then(() => {})
@@ -257,7 +253,6 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
         });
     }
   } else {
-    // storageCurTabReal.startTime = Date.now();
     getCurrentTab().then((tab) => {
       changedTo(tab.id, tab);
     });
@@ -266,7 +261,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 function changedTo(tabId, tab) {
   var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
-  console.log("changedTo: " + changeurl);
+  // console.log("changedTo: " + changeurl);
 
   if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
     storageCurTabReal.endTime = Date.now();
@@ -298,19 +293,16 @@ function changedTo(tabId, tab) {
 
 // listen to onUpdated events so as to be notified when a URL is set.
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  console.log("on updated");
   if (changeInfo.status === "complete") {
     changedTo(tabId, tab);
   }
 });
 
 chrome.tabs.onCreated.addListener((tab) => {
-  console.log("on created");
   changedTo(tab.id, tab);
 });
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
-  console.log("on activated");
   chrome.tabs.get(activeInfo.tabId, (tab) => {
     changedTo(tab.id, tab);
   });

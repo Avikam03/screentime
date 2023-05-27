@@ -26,7 +26,6 @@ export default function Home() {
   );
 
   const handleBarClick = (index: number) => {
-    console.log("just set it to " + index);
     setSelectedBarIndex(index);
     // Do something with the selected bar data
   };
@@ -40,9 +39,7 @@ export default function Home() {
       import("../../public/storage.js").then((storage) =>
         Promise.all([
           storage.default.set("limitify_blocked", newBlockedData),
-        ]).then(() =>
-          console.log("just set " + website + " to " + newBlockedData[website])
-        )
+        ]).then()
       );
     };
 
@@ -64,10 +61,6 @@ export default function Home() {
 
           setSelectedBarIndex(curDate.getDay());
           setTodayIndex(curDate.getDay());
-          console.log(
-            "just initialised selectebarindex to " + curDate.getDay()
-          );
-
           setAllData(result);
 
           // Process "limitify_data"
@@ -82,9 +75,6 @@ export default function Home() {
           // Process "limitify_blocked"
           if (blockedResult) {
             setBlockedData(blockedResult);
-            console.log(
-              "HERE HERE HERE youtube.com is: " + blockedResult["youtube.com"]
-            );
           }
 
           var weekData = [];
@@ -226,7 +216,6 @@ export default function Home() {
                                     value=""
                                     className="sr-only peer"
                                     checked={blockedData[key]}
-                                    //  onChange={() => handleToggle(key)}
                                     onChange={handleToggle(key)}
                                   />
                                   <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
