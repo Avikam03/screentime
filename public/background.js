@@ -229,6 +229,19 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
+function getCurrentTab() {
+  return new Promise((resolve, reject) => {
+    let queryOptions = { active: true, lastFocusedWindow: true };
+    chrome.tabs.query(queryOptions, ([tab]) => {
+      if (tab) {
+        resolve(tab);
+      } else {
+        reject(new Error("Unable to retrieve the current tab."));
+      }
+    });
+  });
+}
+
 chrome.windows.onFocusChanged.addListener((windowId) => {
   console.log("window changed");
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
@@ -238,34 +251,28 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
       // console.log(storageCurTabReal);
       storage
         .add(storageCurTabReal)
-        .then(() => {
-        //   console.log("Tab data added.");
-        })
+        .then(() => {})
         .catch((error) => {
           console.error("Failed to add tab data:", error);
         });
     }
   } else {
-    if (storageCurTabReal.url !== "newtab") {
-      console.log("changedTo: " + storageCurTabReal.url);
-    }
-    storageCurTabReal.startTime = Date.now();
+    // storageCurTabReal.startTime = Date.now();
+    getCurrentTab().then((tab) => {
+      changedTo(tab.id, tab);
+    });
   }
 });
 
 function changedTo(tabId, tab) {
   var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
-  changeurl.hostname !== "newtab"
-    ? console.log("changedTo: " + changeurl)
-    : null;
+  console.log("changedTo: " + changeurl);
+
   if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
     storageCurTabReal.endTime = Date.now();
-    // console.log(storageCurTabReal);
     storage
       .add(storageCurTabReal)
-      .then(() => {
-        console.log("Tab data added.");
-      })
+      .then(() => {})
       .catch((error) => {
         console.error("Failed to add tab data:", error);
       });
@@ -277,6 +284,16 @@ function changedTo(tabId, tab) {
     startTime: Date.now(),
     endTime: null,
   };
+
+  storage.get("limitify_blocked").then((result) => {
+    if (result[changeurl.hostname]) {
+      chrome.tabs.get(tabId, (tab) => {
+        setTimeout(() => {
+          chrome.tabs.remove(tabId);
+        }, 1000);
+      });
+    }
+  });
 }
 
 // listen to onUpdated events so as to be notified when a URL is set.
