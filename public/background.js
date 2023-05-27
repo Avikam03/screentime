@@ -201,27 +201,28 @@ const storage = {
 	}
 };
 
-console.log("hello world")
+chrome.runtime.onInstalled.addListener(() => {
+	console.log("hello world")
 
-var currentdate = new Date();
+	var currentdate = new Date();
+	var startweek = new Date(currentdate);
+	startweek.setDate(currentdate.getDate() - currentdate.getDay());
+	startweek.setHours(0, 0, 0, 0);
 
-var startweek = new Date(currentdate);
-startweek.setDate(currentdate.getDate() - currentdate.getDay());
-startweek.setHours(0, 0, 0, 0);
+	var endweek = new Date(startweek);
+	endweek.setDate(startweek.getDate() + 6);
+	endweek.setHours(23, 59, 59, 999);
 
-var endweek = new Date(startweek);
-endweek.setDate(startweek.getDate() + 6);
-endweek.setHours(23, 59, 59, 999);
-
-
-Promise.all([
-	storage.set("limitify_curweek_start", startweek),
-	storage.set("limitify_curweek_end", endweek),
-	storage.set("limitify_data", {})
-]).then(() => {
-	console.log("Storage Initialization complete.");
-}).catch((error) => {
-	console.error("Storage Initialization failed:", error);
+	Promise.all([
+		storage.set("limitify_curweek_start", startweek),
+		storage.set("limitify_curweek_end", endweek),
+		storage.set("limitify_data", {}),
+		storage.set("limitify_blocked", {})
+	]).then(() => {
+		console.log("Initialised storage.");
+	}).catch((error) => {
+		console.error("Failed to initialise storage", error);
+	});
 });
 
   
@@ -229,7 +230,6 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {	
     // set end time of cur tab in storage to right now	
     if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
-		console.log("just added " + "chrome://" + storageCurTabReal.url);
 		storageCurTabReal.endTime = Date.now();	
 		console.log(storageCurTabReal);	
 		storage.add(storageCurTabReal).then(() => {	
@@ -246,11 +246,10 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
   }
 });
 
-function changedTo(tabId, tab) {	
+function changedTo(tabId, tab) {
 	var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);		
 	changeurl.hostname !== "newtab" ? console.log("changedTo: " + changeurl) : null;	
 	if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
-		console.log("just added " + "chrome://" + storageCurTabReal.url);
 		storageCurTabReal.endTime = Date.now();	
 		console.log(storageCurTabReal);	
 		storage.add(storageCurTabReal).then(() => {	

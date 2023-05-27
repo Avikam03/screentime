@@ -19,6 +19,7 @@ export default function Home() {
   const [selectedBarIndex, setSelectedBarIndex] = useState(0);
   const [todayIndex, setTodayIndex] = useState(0);
   const [allData, setAllData] = useState<ScreenTime>({});
+  const [blockedData, setBlockedData] = useState({} as { [key: string]: boolean });
 
   const handleBarClick = (index: number) => {
     console.log("just set it to " + index)
@@ -26,43 +27,70 @@ export default function Home() {
     // Do something with the selected bar data
   };
 
+  const handleToggle = (website: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newBlockedData = { ...blockedData };
+    newBlockedData[website] = !newBlockedData[website];
+    setBlockedData(newBlockedData);
+
+    import('../../public/storage.js').then((storage) =>
+      Promise.all([
+        storage.default.set('limitify_blocked', newBlockedData)
+      ]).then(() => console.log("just set " + website + " to " + newBlockedData[website]))
+    );
+  }
+
   useEffect(() => {
     setLoading(true);
   
     // Run the code only on the client-side
     if (typeof window !== 'undefined') {
-      import('../../public/storage.js').then((storage) => {
-        storage.default.get('limitify_data').then((result: ScreenTime | null | undefined) => {
-          if (result) {
-            var curDate = new Date();
-
-            setSelectedBarIndex(curDate.getDay());
-            setTodayIndex(curDate.getDay());
-            console.log("just initialised selectebarindex to " + curDate.getDay());
-            
-            setAllData(result);
-            var todaysdata: { [key: string]: number } = result[(curDate.getDay()).toString()] || {}; // get the data for today
-            var sortedData = Object.entries(todaysdata).sort((a, b) => b[1] - a[1]);
-            todaysdata = Object.fromEntries(sortedData);
-            setProcessedData(todaysdata);
+      Promise.all([
+        import('../../public/storage.js').then((storage) =>
+          storage.default.get('limitify_data')
+        ),
+        import('../../public/storage.js').then((storage) =>
+          storage.default.get('limitify_blocked')
+        )
+      ]).then(([result, blockedResult]) => {
+        if (result) {
+          var curDate = new Date();
   
-            var weekData = [];
-            weekData.push(result["0"]?.total || 0)
-            weekData.push(result["1"]?.total || 0)
-            weekData.push(result["2"]?.total || 0)
-            weekData.push(result["3"]?.total || 0)  
-            weekData.push(result["4"]?.total || 0)
-            weekData.push(result["5"]?.total || 0)
-            weekData.push(result["6"]?.total || 0)
-          
-            setWeekData(weekData);
+          setSelectedBarIndex(curDate.getDay());
+          setTodayIndex(curDate.getDay());
+          console.log("just initialised selectebarindex to " + curDate.getDay());
+  
+          setAllData(result);
+  
+          // Process "limitify_data"
+          var todaysData: { [key: string]: number } =
+            result[curDate.getDay().toString()] || {};
+          var sortedData = Object.entries(todaysData).sort((a, b) => b[1] - a[1]);
+          todaysData = Object.fromEntries(sortedData);
+          setProcessedData(todaysData);
+  
+          // Process "limitify_blocked"
+          if (blockedResult) {
+            setBlockedData(blockedResult);
+            console.log("HERE HERE HERE youtube.com is: " + blockedResult["youtube.com"])
           }
   
-          setLoading(false);
-        });
+          var weekData = [];
+          weekData.push(result["0"]?.total || 0);
+          weekData.push(result["1"]?.total || 0);
+          weekData.push(result["2"]?.total || 0);
+          weekData.push(result["3"]?.total || 0);
+          weekData.push(result["4"]?.total || 0);
+          weekData.push(result["5"]?.total || 0);
+          weekData.push(result["6"]?.total || 0);
+  
+          setWeekData(weekData);
+        }
+  
+        setLoading(false);
       });
     }
   }, []);
+  
 
   useEffect(() => {  
     if (typeof window !== 'undefined' && allData) {
@@ -107,7 +135,7 @@ export default function Home() {
                     <tr>
                       <th scope="col" className="px-6 py-4">Website</th>
                       <th scope="col" className="px-6 py-4">Time</th>
-                      {selectedBarIndex == todayIndex ? <th scope="col" className="px-6 py-4">Limit</th> : null}
+                      {selectedBarIndex == todayIndex ? <th scope="col" className="px-6 py-4">Block</th> : null}
                     </tr>
                   </thead>
                   <tbody>
@@ -142,9 +170,17 @@ export default function Home() {
 
                         {selectedBarIndex == todayIndex ?
                         <td className="whitespace-nowrap px-6 py-4">
-                          <button>
-                            +
-                          </button>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                             type="checkbox"
+                             value=""
+                             className="sr-only peer"
+                             checked={blockedData[key]}
+                            //  onChange={() => handleToggle(key)}
+                              onChange={handleToggle(key)}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                          </label>
                         </td>
                         : null}
                         
