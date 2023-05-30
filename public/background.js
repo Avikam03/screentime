@@ -261,9 +261,8 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 function changedTo(tabId, tab) {
   var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
-  // console.log("changedTo: " + changeurl);
 
-  if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
+  if ((chromeurls.includes("chrome://" + storageCurTabReal.url) === false) && storageCurTabReal.url != "") {
     storageCurTabReal.endTime = Date.now();
     storage
       .add(storageCurTabReal)
@@ -283,9 +282,13 @@ function changedTo(tabId, tab) {
   storage.get("limitify_blocked").then((result) => {
     if (result[changeurl.hostname]) {
       chrome.tabs.get(tabId, (tab) => {
-        setTimeout(() => {
-          chrome.tabs.remove(tabId);
-        }, 1000);
+        try{
+          setTimeout(() => {
+            chrome.tabs.remove(tabId);
+          }, 1000);
+        } catch(e){
+          console.log("error removing tab: " + e);
+        }
       });
     }
   });

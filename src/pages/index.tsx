@@ -71,6 +71,9 @@ export default function Home() {
           );
           todaysData = Object.fromEntries(sortedData);
           setProcessedData(todaysData);
+          
+          console.log("today's data: ");
+          console.log(todaysData);
 
           // Process "limitify_blocked"
           if (blockedResult) {
@@ -163,8 +166,8 @@ export default function Home() {
                   <tbody>
                     {Object.keys(processedData).map(
                       (key) =>
-                        key != "total" &&
-                        key != "" && (
+                        key != "total" && (
+                        // key != "" && (
                           <tr className="border-b dark:border-neutral-500">
                             <td className="whitespace-nowrap px-6 py-4 font-medium">
                               <div className="flex items-center">
