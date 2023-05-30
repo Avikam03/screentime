@@ -12,6 +12,11 @@ type ScreenTime = {
   };
 };
 
+const urlFavicons: Record<string, string> = {
+  "mail.google.com": "https://i.imgur.com/RONfcuW.png",
+  "learn.uwaterloo.ca": "https://i.imgur.com/yVvwU3l.png",
+};
+
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [processedData, setProcessedData] = useState(
@@ -166,16 +171,19 @@ export default function Home() {
                   <tbody>
                     {Object.keys(processedData).map(
                       (key) =>
-                        key != "total" && (
-                        // key != "" && (
+                        key != "total" && //(
+                        key != "" && (
                           <tr className="border-b dark:border-neutral-500">
                             <td className="whitespace-nowrap px-6 py-4 font-medium">
                               <div className="flex items-center">
                                 <Image
                                   src={
-                                    "https://www.google.com/s2/favicons?domain=" +
+                                    (urlFavicons[key] == undefined ?
+                                    ("https://www.google.com/s2/favicons?domain=" +
                                     key +
-                                    "&sz=32"
+                                    "&sz=32") :
+                                    urlFavicons[key]
+                                    )
                                   }
                                   // src={"https://api.faviconkit.com/" + key + "/32"}
                                   width={32}

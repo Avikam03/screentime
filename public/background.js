@@ -261,7 +261,6 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 function changedTo(tabId, tab) {
   var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
-
   if ((chromeurls.includes("chrome://" + storageCurTabReal.url) === false) && storageCurTabReal.url != "") {
     storageCurTabReal.endTime = Date.now();
     storage
