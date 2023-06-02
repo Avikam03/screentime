@@ -15,6 +15,7 @@ type ScreenTime = {
 const urlFavicons: Record<string, string> = {
   "mail.google.com": "https://i.imgur.com/RONfcuW.png",
   "learn.uwaterloo.ca": "https://i.imgur.com/yVvwU3l.png",
+  "web.whatsapp.com": "https://i.imgur.com/CiJUiC0.png",
 };
 
 export default function Home() {
@@ -130,7 +131,7 @@ export default function Home() {
         <h1 className="mt-2 text-4xl dark:text-white">
           {
             processedData["total"] == undefined
-              ? "no data recorded yet"
+              ? "no usage up to now"
               : Math.ceil(processedData["total"]) > 3600
               ? Math.floor(Math.ceil(processedData["total"]) / 3600) +
                 "h " +

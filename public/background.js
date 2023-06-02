@@ -261,6 +261,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 function changedTo(tabId, tab) {
   var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
+  console.log("changed to " + changeurl.hostname);
   if ((chromeurls.includes("chrome://" + storageCurTabReal.url) === false) && storageCurTabReal.url != "") {
     storageCurTabReal.endTime = Date.now();
     storage
@@ -300,9 +301,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
-chrome.tabs.onCreated.addListener((tab) => {
-  changedTo(tab.id, tab);
-});
+// chrome.tabs.onCreated.addListener((tab) => {
+//   changedTo(tab.id, tab);
+// });
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
