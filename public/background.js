@@ -102,20 +102,7 @@ const storage = {
           curweekstart = new Date(curweekstart);
           curweekend = new Date(curweekend);
 
-          if (startDate <= curweekend && endDate > curweekend) {
-            value.endTime = curweekend;
-            this.add(value).then(() => {
-              resolve();
-            });
-
-            const temp = new Date(endDate);
-            temp.setDate(endDate.getDate() - endDate.getDay());
-            temp.setHours(0, 0, 0, 0);
-            value.startTime = temp;
-            value.endTime = endDate;
-          }
-
-          if (startDate > curweekend) {
+          if (startDate > curweekstart) {
             // new week
             // set curweekstart to start of new week
             // set curweekend to end of new week
@@ -138,48 +125,70 @@ const storage = {
             });
           }
 
-          // at this point, we know that
-          // startDate <= curweekend && endDate <= curweekend
-          // however, it's still possible that startDate and endDate span across multiple days
-
-          if (startDate.getDay() !== endDate.getDay()) {
-            value.endTime = new Date(startDate);
-            value.endTime.setHours(23, 59, 59, 999);
+          if (startDate <= curweekend && endDate > curweekend) {
+            // case when start and end dates span across multiple weeks
+            value.endTime = curweekend;
             this.add(value).then(() => {
               resolve();
             });
 
-            value.startTime = new Date(endDate);
-            value.startTime.setHours(0, 0, 0, 0);
-            value.endTime = new Date(endDate);
-          }
+            const temp = new Date(curweekend);
+            temp.setDate(curweekend.getDate() + 1);
+            temp.setHours(0, 0, 0, 0);
+            value.startTime = temp;
+            value.endTime = endDate;
 
-          // at this point, we know that
-          // startDate.getDay() == endDate.getDay()
-
-          this.get(key).then((result) => {
-            if (!result[startDate.getDay().toString()]) {
-              result[startDate.getDay().toString()] = {};
-            }
-            if (!result[startDate.getDay().toString()][value.url]) {
-              result[startDate.getDay().toString()][value.url] = 0;
-            }
-
-            if (!result[startDate.getDay().toString()]["total"]) {
-              result[startDate.getDay().toString()]["total"] = 0;
-            }
-
-            var toadd =
-              Math.abs(startDate.getTime() - endDate.getTime()) / 1000;
-            result[startDate.getDay().toString()][value.url] += toadd;
-            result[startDate.getDay().toString()]["total"] += toadd;
-
-            // console.log("just added " + toadd + "seconds to " + value.url);
-
-            this.set(key, result).then(() => {
+            this.add(value).then(() => {
               resolve();
             });
-          });
+          } else if (startDate.getDay() !== endDate.getDay()) {
+            // at this point, we know that
+            // startDate <= curweekend && endDate <= curweekend
+            // however, it's still possible that startDate and endDate span across multiple days
+
+            value.endTime = new Date(startDate);
+            value.endTime.setHours(23, 59, 59, 999);
+
+            this.add(value).then(() => {
+              resolve();
+            });
+
+            value.startTime = new Date(startDate);
+            value.startTime.setDate(startDate.getDate() + 1);
+            value.startTime.setHours(0, 0, 0, 0);
+            value.endTime = new Date(endDate);
+
+            this.add(value).then(() => {
+              resolve();
+            });
+          } else if (startDate.getDay() === endDate.getDay()) {
+            // at this point, we know that
+            // startDate.getDay() == endDate.getDay()
+
+            this.get(key).then((result) => {
+              if (!result[startDate.getDay().toString()]) {
+                result[startDate.getDay().toString()] = {};
+              }
+              if (!result[startDate.getDay().toString()][value.url]) {
+                result[startDate.getDay().toString()][value.url] = 0;
+              }
+
+              if (!result[startDate.getDay().toString()]["total"]) {
+                result[startDate.getDay().toString()]["total"] = 0;
+              }
+
+              var toadd =
+                Math.abs(startDate.getTime() - endDate.getTime()) / 1000;
+              result[startDate.getDay().toString()][value.url] += toadd;
+              result[startDate.getDay().toString()]["total"] += toadd;
+
+              // console.log("just added " + toadd + "seconds to " + value.url);
+
+              this.set(key, result).then(() => {
+                resolve();
+              });
+            });
+          }
         }
       );
     });
@@ -262,7 +271,10 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 function changedTo(tabId, tab) {
   var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
   console.log("changed to " + changeurl.hostname);
-  if ((chromeurls.includes("chrome://" + storageCurTabReal.url) === false) && storageCurTabReal.url != "") {
+  if (
+    chromeurls.includes("chrome://" + storageCurTabReal.url) === false &&
+    storageCurTabReal.url != ""
+  ) {
     storageCurTabReal.endTime = Date.now();
     storage
       .add(storageCurTabReal)
@@ -282,11 +294,11 @@ function changedTo(tabId, tab) {
   storage.get("limitify_blocked").then((result) => {
     if (result[changeurl.hostname]) {
       chrome.tabs.get(tabId, (tab) => {
-        try{
+        try {
           setTimeout(() => {
             chrome.tabs.remove(tabId);
           }, 1000);
-        } catch(e){
+        } catch (e) {
           console.log("error removing tab: " + e);
         }
       });
