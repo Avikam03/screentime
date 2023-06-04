@@ -15,7 +15,9 @@ type ScreenTime = {
 const urlFavicons: Record<string, string> = {
   "mail.google.com": "https://i.imgur.com/RONfcuW.png",
   "learn.uwaterloo.ca": "https://i.imgur.com/yVvwU3l.png",
-  "web.whatsapp.com": "https://i.imgur.com/CiJUiC0.png",
+  "web.whatsapp.com": "https://i.imgur.com/47PgHxi.png",
+  "linkedin.com": "https://icon.horse/icon/linkedin.com",
+  "www.linkedin.com": "https://icon.horse/icon/linkedin.com"
 };
 
 export default function Home() {

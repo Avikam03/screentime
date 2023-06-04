@@ -249,70 +249,77 @@ function getCurrentTab() {
 
 chrome.windows.onFocusChanged.addListener((windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    // set end time of cur tab in storage to right now
-
+    // Set end time of the current tab in storage to right now
     var storageCurTabReal = {};
-    storage.get("limitify_curtab").then((result) => {
-      storageCurTabReal = result;
-    });
 
-    if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
-      storageCurTabReal.endTime = Date.now();
-      storage
-        .add(storageCurTabReal)
-        .then(() => {})
-        .catch((error) => {
-          console.error("Failed to add tab data:", error);
-        });
-
-      storage.set("limitify_curtab", storageCurTabReal);
-    }
+    storage
+      .get("limitify_curtab")
+      .then((result) => {
+        storageCurTabReal = result;
+        if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
+          storageCurTabReal.endTime = Date.now();
+          return storage.add(storageCurTabReal);
+        }
+      })
+      .then(() => {
+        return storage.set("limitify_curtab", storageCurTabReal);
+      })
+      .catch((error) => {
+        console.error("Failed to update tab data:", error);
+      });
   } else {
-    getCurrentTab().then((tab) => {
-      changedTo(tab.id, tab);
-    });
+    getCurrentTab()
+      .then((tab) => {
+        changedTo(tab.id, tab);
+      })
+      .catch((error) => {
+        console.error("Failed to get current tab:", error);
+      });
   }
 });
 
 function changedTo(tabId, tab) {
   var storageCurTabReal = {};
-  storage.get("limitify_curtab").then((result) => {
-    storageCurTabReal = result;
-  });
-
   const changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
   const timenow = new Date();
-  console.log(
-    "changed to " +
-      changeurl.hostname +
-      " at time: " +
-      timenow.toLocaleTimeString()
-  );
-  if (
-    !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
-    storageCurTabReal.url !== ""
-  ) {
-    console.log(
-      "left " +
-        storageCurTabReal.url +
-        " at time: " +
-        timenow.toLocaleTimeString()
-    );
-    storageCurTabReal.endTime = Date.now();
-    storage
-      .add(storageCurTabReal)
-      .then(() => {})
-      .catch((error) => {
-        console.error("Failed to add tab data:", error);
-      });
-  }
-  storageCurTabReal = {
-    id: tabId,
-    url: changeurl.hostname,
-    title: tab.title,
-    startTime: Date.now(),
-    endTime: null,
-  };
+
+  storage
+    .get("limitify_curtab")
+    .then((result) => {
+      storageCurTabReal = result;    
+      // console.log(
+      //   "changed to " +
+      //     changeurl.hostname +
+      //     " at time: " +
+      //     timenow.toLocaleTimeString()
+      // );
+      if (
+        !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
+        storageCurTabReal.url !== ""
+      ) {
+        // console.log(
+        //   "left " +
+        //     storageCurTabReal.url +
+        //     " at time: " +
+        //     timenow.toLocaleTimeString()
+        // );
+        storageCurTabReal.endTime = Date.now();
+        return storage.add(storageCurTabReal);
+      }
+    })
+    .then(() => {
+      storageCurTabReal = {
+        id: tabId,
+        url: changeurl.hostname,
+        title: tab.title,
+        startTime: Date.now(),
+        endTime: null,
+      };
+      return storage.set("limitify_curtab", storageCurTabReal);
+    })
+    .catch((error) => {
+      console.error("Failed to update tab data:", error);
+    });
 
   storage.get("limitify_blocked").then((result) => {
     if (result[changeurl.hostname]) {
@@ -327,17 +334,13 @@ function changedTo(tabId, tab) {
       });
     }
   });
-
-  storage.set("limitify_curtab", storageCurTabReal);
 }
 
 // listen to onUpdated events so as to be notified when a URL is set.
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // console.log("changeInfo.status: " + changeInfo.status);
-  // if (changeInfo.status === "complete") {
-  // changedTo(tabId, tab);
-  // }
-  changedTo(tabId, tab);
+  if (changeInfo.status === "complete") {
+    changedTo(tabId, tab);
+  }
 });
 
 // chrome.tabs.onCreated.addListener((tab) => {
