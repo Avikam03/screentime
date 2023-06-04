@@ -102,7 +102,7 @@ const storage = {
           curweekstart = new Date(curweekstart);
           curweekend = new Date(curweekend);
 
-          if (startDate > curweekstart) {
+          if (startDate > curweekend) {
             // new week
             // set curweekstart to start of new week
             // set curweekend to end of new week
@@ -150,37 +150,37 @@ const storage = {
             value.endTime.setHours(23, 59, 59, 999);
 
             this.add(value).then(() => {
-              resolve();
+              value.startTime = new Date(startDate);
+              value.startTime.setDate(startDate.getDate() + 1);
+              value.startTime.setHours(0, 0, 0, 0);
+              value.endTime = new Date(endDate);
+
+              this.add(value).then(() => {
+                resolve();
+              });
             });
 
-            value.startTime = new Date(startDate);
-            value.startTime.setDate(startDate.getDate() + 1);
-            value.startTime.setHours(0, 0, 0, 0);
-            value.endTime = new Date(endDate);
-
-            this.add(value).then(() => {
-              resolve();
-            });
           } else if (startDate.getDay() === endDate.getDay()) {
             // at this point, we know that
             // startDate.getDay() == endDate.getDay()
 
             this.get(key).then((result) => {
-              if (!result[startDate.getDay().toString()]) {
-                result[startDate.getDay().toString()] = {};
+              const dayOfWeek = startDate.getDay().toString();
+              if (!result[dayOfWeek]) {
+                result[dayOfWeek] = {};
               }
-              if (!result[startDate.getDay().toString()][value.url]) {
-                result[startDate.getDay().toString()][value.url] = 0;
+              if (!result[dayOfWeek][value.url]) {
+                result[dayOfWeek][value.url] = 0;
               }
 
-              if (!result[startDate.getDay().toString()]["total"]) {
-                result[startDate.getDay().toString()]["total"] = 0;
+              if (!result[dayOfWeek]["total"]) {
+                result[dayOfWeek]["total"] = 0;
               }
 
               var toadd =
                 Math.abs(startDate.getTime() - endDate.getTime()) / 1000;
-              result[startDate.getDay().toString()][value.url] += toadd;
-              result[startDate.getDay().toString()]["total"] += toadd;
+              result[dayOfWeek][value.url] += toadd;
+              result[dayOfWeek]["total"] += toadd;
 
               // console.log("just added " + toadd + "seconds to " + value.url);
 
@@ -206,19 +206,19 @@ const storage = {
   get(key) {
     return new Promise((resolve) => {
       chrome.storage.sync.get([key], (result) => {
-        result[key] ? resolve(result[key]) : resolve([]);
+        resolve(result[key] || []);
       });
     });
   },
 };
 
 chrome.runtime.onInstalled.addListener(() => {
-  var currentdate = new Date();
-  var startweek = new Date(currentdate);
+  const currentdate = new Date();
+  const startweek = new Date(currentdate);
   startweek.setDate(currentdate.getDate() - currentdate.getDay());
   startweek.setHours(0, 0, 0, 0);
 
-  var endweek = new Date(startweek);
+  const endweek = new Date(startweek);
   endweek.setDate(startweek.getDate() + 6);
   endweek.setHours(23, 59, 59, 999);
 
@@ -252,7 +252,7 @@ function getCurrentTab() {
 chrome.windows.onFocusChanged.addListener((windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     // set end time of cur tab in storage to right now
-    if (chromeurls.includes("chrome://" + storageCurTabReal.url) === false) {
+    if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
       storageCurTabReal.endTime = Date.now();
       storage
         .add(storageCurTabReal)
@@ -269,12 +269,24 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 });
 
 function changedTo(tabId, tab) {
-  var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
-  console.log("changed to " + changeurl.hostname);
+  const changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
+  const timenow = new Date();
+  console.log(
+    "changed to " +
+      changeurl.hostname +
+      " at time: " +
+      timenow.toLocaleTimeString()
+  );
   if (
-    chromeurls.includes("chrome://" + storageCurTabReal.url) === false &&
-    storageCurTabReal.url != ""
+    !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
+    storageCurTabReal.url !== ""
   ) {
+    console.log(
+      "left " +
+        storageCurTabReal.url +
+        " at time: " +
+        timenow.toLocaleTimeString()
+    );
     storageCurTabReal.endTime = Date.now();
     storage
       .add(storageCurTabReal)

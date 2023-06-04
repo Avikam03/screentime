@@ -131,7 +131,7 @@ export default function Home() {
         <h1 className="mt-2 text-4xl dark:text-white">
           {
             processedData["total"] == undefined
-              ? "no usage up to now"
+              ? "no usage recorded"
               : Math.ceil(processedData["total"]) > 3600
               ? Math.floor(Math.ceil(processedData["total"]) / 3600) +
                 "h " +
