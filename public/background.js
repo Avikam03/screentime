@@ -78,15 +78,6 @@ const chromeurls = [
   "chrome://internals/session-service",
 ];
 
-var storageCurTabReal = {
-  id: null,
-  url: "newtab",
-  favicon: null,
-  title: null,
-  startTime: null,
-  endTime: null,
-};
-
 const storage = {
   add(value) {
     const key = "limitify_data";
@@ -159,7 +150,6 @@ const storage = {
                 resolve();
               });
             });
-
           } else if (startDate.getDay() === endDate.getDay()) {
             // at this point, we know that
             // startDate.getDay() == endDate.getDay()
@@ -227,6 +217,14 @@ chrome.runtime.onInstalled.addListener(() => {
     storage.set("limitify_curweek_end", endweek),
     storage.set("limitify_data", {}),
     storage.set("limitify_blocked", {}),
+    storage.set("limitify_curtab", {
+      id: null,
+      url: "newtab",
+      favicon: null,
+      title: null,
+      startTime: null,
+      endTime: null,
+    }),
   ])
     .then(() => {
       console.log("initialised storage.");
@@ -252,6 +250,12 @@ function getCurrentTab() {
 chrome.windows.onFocusChanged.addListener((windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     // set end time of cur tab in storage to right now
+
+    var storageCurTabReal = {};
+    storage.get("limitify_curtab").then((result) => {
+      storageCurTabReal = result;
+    });
+
     if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
       storageCurTabReal.endTime = Date.now();
       storage
@@ -260,6 +264,8 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
         .catch((error) => {
           console.error("Failed to add tab data:", error);
         });
+
+      storage.set("limitify_curtab", storageCurTabReal);
     }
   } else {
     getCurrentTab().then((tab) => {
@@ -269,6 +275,11 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 });
 
 function changedTo(tabId, tab) {
+  var storageCurTabReal = {};
+  storage.get("limitify_curtab").then((result) => {
+    storageCurTabReal = result;
+  });
+
   const changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
   const timenow = new Date();
   console.log(
@@ -316,13 +327,17 @@ function changedTo(tabId, tab) {
       });
     }
   });
+
+  storage.set("limitify_curtab", storageCurTabReal);
 }
 
 // listen to onUpdated events so as to be notified when a URL is set.
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete") {
-    changedTo(tabId, tab);
-  }
+  // console.log("changeInfo.status: " + changeInfo.status);
+  // if (changeInfo.status === "complete") {
+  // changedTo(tabId, tab);
+  // }
+  changedTo(tabId, tab);
 });
 
 // chrome.tabs.onCreated.addListener((tab) => {
