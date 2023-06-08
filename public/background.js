@@ -1,3 +1,5 @@
+const DEBUG = true;
+
 const chromeurls = [
   "chrome://about",
   "chrome://accessibility",
@@ -172,7 +174,9 @@ const storage = {
               result[dayOfWeek][value.url] += toadd;
               result[dayOfWeek]["total"] += toadd;
 
-              // console.log("just added " + toadd + "seconds to " + value.url);
+              DEBUG
+                ? console.log("just added " + toadd + " seconds to " + value.url)
+                : null;
 
               this.set(key, result).then(() => {
                 resolve();
@@ -256,14 +260,19 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
       .get("limitify_curtab")
       .then((result) => {
         storageCurTabReal = result;
-        if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
+        if (
+          !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
+          storageCurTabReal.url !== ""
+        ) {
           var timenow = new Date();
-          console.log(
-            "windowFocusChanged: left " +
-              storageCurTabReal.url +
-              " at time: " +
-              timenow.toLocaleTimeString()
-          );
+          DEBUG
+            ? console.log(
+                "windowOnChanged: left " +
+                  storageCurTabReal.url +
+                  " at time: " +
+                  timenow.toLocaleTimeString()
+              )
+            : null;
           storageCurTabReal.endTime = Date.now();
           return storage.add(storageCurTabReal);
         }
@@ -300,28 +309,40 @@ function changedTo(tabId, tab) {
   storage
     .get("limitify_curtab")
     .then((result) => {
-      storageCurTabReal = result;    
+      storageCurTabReal = result;
       if (
         !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
         storageCurTabReal.url !== ""
       ) {
-        console.log(
-          "left " +
-            storageCurTabReal.url +
-            " at time: " +
-            timenow.toLocaleTimeString()
-        );
+        DEBUG
+          ? console.log(
+              "left " +
+                storageCurTabReal.url +
+                " at time: " +
+                timenow.toLocaleTimeString()
+            )
+          : null;
         storageCurTabReal.endTime = Date.now();
         return storage.add(storageCurTabReal);
       }
     })
     .then(() => {
-      console.log(
-        "changed to " +
-          changeurl.hostname +
-          " at time: " +
-          timenow.toLocaleTimeString()
-      );
+      DEBUG
+        ? changeurl.hostname != ""
+          ? console.log(
+              "changed to " +
+                changeurl.hostname +
+                " at time: " +
+                timenow.toLocaleTimeString()
+            )
+          : console.log(
+              "changed to " +
+                "local file" +
+                " at time: " +
+                timenow.toLocaleTimeString()
+            )
+        : null;
+
       storageCurTabReal = {
         id: tabId,
         url: changeurl.hostname,
@@ -343,7 +364,7 @@ function changedTo(tabId, tab) {
             chrome.tabs.remove(tabId);
           }, 1000);
         } catch (e) {
-          console.log("error removing tab: " + e);
+          DEBUG ? console.log("error removing tab: " + e) : null;
         }
       });
     }
@@ -355,18 +376,20 @@ function endCurTab() {
   storage
     .get("limitify_curtab")
     .then((result) => {
-      storageCurTabReal = result;    
+      storageCurTabReal = result;
       if (
         !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
         storageCurTabReal.url !== ""
       ) {
         var timenow = new Date();
-        console.log(
-          "idle: left " +
-            storageCurTabReal.url +
-            " at time: " +
-            timenow.toLocaleTimeString()
-        );
+        DEBUG
+          ? console.log(
+              "IDLE: left " +
+                storageCurTabReal.url +
+                " at time: " +
+                timenow.toLocaleTimeString()
+            )
+          : null;
         storageCurTabReal.endTime = Date.now();
         return storage.add(storageCurTabReal);
       }
