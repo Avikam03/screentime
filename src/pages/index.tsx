@@ -158,14 +158,14 @@ export default function Home() {
                 <table className="min-w-full text-left text-sm font-light">
                   <thead className="border-b font-medium dark:border-neutral-500">
                     <tr>
-                      <th scope="col" className="px-6 py-4">
+                      <th scope="col" className="px-6 py-4 dark:text-white">
                         Website
                       </th>
-                      <th scope="col" className="px-6 py-4">
+                      <th scope="col" className="px-6 py-4 dark:text-white">
                         Time
                       </th>
                       {selectedBarIndex == todayIndex ? (
-                        <th scope="col" className="px-6 py-4">
+                        <th scope="col" className="px-6 py-4 dark:text-white">
                           Block
                         </th>
                       ) : null}
@@ -198,10 +198,10 @@ export default function Home() {
                                   }}
                                   alt=""
                                 />
-                                <div className="ml-2">{key}</div>
+                                <div className="ml-2 dark:text-white">{key}</div>
                               </div>
                             </td>
-                            <td className="whitespace-nowrap px-6 py-4">
+                            <td className="whitespace-nowrap px-6 py-4 dark:text-white">
                               {
                                 Math.ceil(processedData[key]) > 3600
                                   ? Math.floor(
