@@ -1,20 +1,15 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## ScreenTime
+[![chrome store logo](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png)](https://chrome.google.com/webstore/detail/screentime/gachmghamoanlighmiebamagipmhdphl)
 
-## Getting Started
+Introducing the ScreenTime Chrome Extension
 
-First, run the development server:
+ScreenTime is a powerful Chrome extension designed to help you stay focused and productive by tracking your web usage and providing insights into your online habits. Inspired by the popular iOS Screen Time feature, this intuitive and user-friendly extension keeps you accountable for your time spent on websites, allowing you to take control of your digital life.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+Key Features:
+- Daily Usage History: Tracks your web usage on a daily basis.
+- Weekly Graph: Visualizes your web usage trends over a week.
+- Website Blocker: Allows you to block specific websites to eliminate distractions.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## Running the Chrome Extension Locally
-
-1. `yarn build`
-2. `mv ./out/_next ./out/next && cd ./out && grep -rli '_next' * | xargs -I@ sed -i '' 's|/_next|/next|g' @ && cd ..`
+![poster 1](./public/chromestore/poster1.png)
+![poster 2](./public/chromestore/poster2.png)
+![poster 3](./public/chromestore/poster3.png)
