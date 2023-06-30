@@ -129,8 +129,8 @@ export default function Home() {
         ) : null}
         {/* <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for the week</h2> */}
 
-        <h2 className="mt-4 text-lg dark:text-white">Usage</h2>
-        <h1 className="mt-2 text-4xl dark:text-white">
+        <h2 className="ml-2 mt-4 text-lg dark:text-white">Usage</h2>
+        <h1 className="ml-2 mt-2 text-4xl dark:text-white">
           {
             processedData["total"] == undefined
               ? "no usage recorded"

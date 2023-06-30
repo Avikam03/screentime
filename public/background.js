@@ -1,4 +1,4 @@
-const DEBUG = false;
+const DEBUG = true;
 
 const chromeurls = [
   "chrome://about",
@@ -110,7 +110,7 @@ const storage = {
             const promises = [
               this.set("limitify_curweek_start", startweek),
               this.set("limitify_curweek_end", endweek),
-              this.set("limitify_data", {}),
+              this.set(key, {}),
             ];
 
             Promise.all(promises).then(() => {
@@ -175,7 +175,7 @@ const storage = {
               result[dayOfWeek]["total"] += toadd;
 
               DEBUG
-                ? console.log("just added " + toadd + " seconds to " + value.url)
+                ? console.log("+" + toadd + " seconds to " + value.url)
                 : null;
 
               this.set(key, result).then(() => {
@@ -234,7 +234,7 @@ chrome.runtime.onInstalled.addListener(() => {
       console.log("initialised storage.");
     })
     .catch((error) => {
-      console.error("Failed to initialise storage", error);
+      console.log("ERROR: Failed to initialise storage", error);
     });
 });
 
@@ -288,7 +288,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
         });
       })
       .catch((error) => {
-        console.error("Failed to update tab data:", error);
+        console.log("ERROR: Failed to update tab data:", error);
       });
   } else {
     getCurrentTab()
@@ -296,7 +296,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
         changedTo(tab.id, tab);
       })
       .catch((error) => {
-        console.error("Failed to get current tab:", error);
+        console.log("ERROR: Failed to get current tab:", error);
       });
   }
 });
@@ -353,19 +353,19 @@ function changedTo(tabId, tab) {
       return storage.set("limitify_curtab", storageCurTabReal);
     })
     .catch((error) => {
-      console.error("Failed to update tab data:", error);
+      console.log("ERROR: Failed to update tab data:", error);
     });
 
   storage.get("limitify_blocked").then((result) => {
     if (result[changeurl.hostname]) {
       chrome.tabs.get(tabId, (tab) => {
-        try {
-          setTimeout(() => {
+        setTimeout(() => {
+          try {
             chrome.tabs.remove(tabId);
-          }, 1000);
-        } catch (e) {
-          DEBUG ? console.log("error removing tab: " + e) : null;
-        }
+          } catch (e) {
+            DEBUG ? console.log("error removing tab: " + e) : null;
+          }
+        }, 1000);
       });
     }
   });
@@ -406,7 +406,7 @@ function endCurTab() {
       return storage.set("limitify_curtab", storageCurTabReal);
     })
     .catch((error) => {
-      console.error("Failed to update tab data:", error);
+      console.log("ERROR: Failed to update tab data:", error);
     });
 }
 
@@ -419,7 +419,7 @@ chrome.idle.onStateChanged.addListener((newState) => {
         changedTo(tab.id, tab);
       })
       .catch((error) => {
-        console.error("Failed to get current tab:", error);
+        console.log("ERROR: Failed to get current tab:", error);
       });
   }
 });
