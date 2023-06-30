@@ -87,104 +87,104 @@ const storage = {
       const startDate = new Date(value.startTime);
       const endDate = new Date(value.endTime);
 
-      const curweekstartPromise = this.get("limitify_curweek_start");
-      const curweekendPromise = this.get("limitify_curweek_end");
+      this.get("limitify_curweek").then((curweek) => {
+        var curweekstart = new Date(curweek.start);
+        var curweekend = new Date(curweek.end);
+        console.log("curWeekStart " + curweekstart.toString());
+        console.log("curWeekEnd " + curweekend.toString());
 
-      Promise.all([curweekstartPromise, curweekendPromise]).then(
-        ([curweekstart, curweekend]) => {
-          curweekstart = new Date(curweekstart);
-          curweekend = new Date(curweekend);
+        if (startDate > curweekend) {
+          DEBUG ? console.log('NEW WEEK: updating curweek in storage & reseting all data') : null;
+          // new week
+          // set curweekstart to start of new week
+          // set curweekend to end of new week
+          const startweek = new Date(startDate);
+          startweek.setDate(startDate.getDate() - startDate.getDay());
+          startweek.setHours(0, 0, 0, 0);
 
-          if (startDate > curweekend) {
-            // new week
-            // set curweekstart to start of new week
-            // set curweekend to end of new week
-            const startweek = new Date(startDate);
-            startweek.setDate(startDate.getDate() - startDate.getDay());
-            startweek.setHours(0, 0, 0, 0);
+          const endweek = new Date(startweek);
+          endweek.setDate(startweek.getDate() + 6);
+          endweek.setHours(23, 59, 59, 999);
 
-            const endweek = new Date(startweek);
-            endweek.setDate(startweek.getDate() + 6);
-            endweek.setHours(23, 59, 59, 999);
+          const promises = [
+            this.set("limitify_curweek", {
+              start: startweek.getTime(),
+              end: endweek.getTime(),
+            }),
+            this.set(key, {}),
+          ];
 
-            const promises = [
-              this.set("limitify_curweek_start", startweek),
-              this.set("limitify_curweek_end", endweek),
-              this.set(key, {}),
-            ];
-
-            Promise.all(promises).then(() => {
-              resolve();
-            });
-          }
-
-          if (startDate <= curweekend && endDate > curweekend) {
-            // case when start and end dates span across multiple weeks
-            value.endTime = curweekend;
-            this.add(value).then(() => {
-              resolve();
-            });
-
-            const temp = new Date(curweekend);
-            temp.setDate(curweekend.getDate() + 1);
-            temp.setHours(0, 0, 0, 0);
-            value.startTime = temp;
-            value.endTime = endDate;
-
-            this.add(value).then(() => {
-              resolve();
-            });
-          } else if (startDate.getDay() !== endDate.getDay()) {
-            // at this point, we know that
-            // startDate <= curweekend && endDate <= curweekend
-            // however, it's still possible that startDate and endDate span across multiple days
-
-            value.endTime = new Date(startDate);
-            value.endTime.setHours(23, 59, 59, 999);
-
-            this.add(value).then(() => {
-              value.startTime = new Date(startDate);
-              value.startTime.setDate(startDate.getDate() + 1);
-              value.startTime.setHours(0, 0, 0, 0);
-              value.endTime = new Date(endDate);
-
-              this.add(value).then(() => {
-                resolve();
-              });
-            });
-          } else if (startDate.getDay() === endDate.getDay()) {
-            // at this point, we know that
-            // startDate.getDay() == endDate.getDay()
-
-            this.get(key).then((result) => {
-              const dayOfWeek = startDate.getDay().toString();
-              if (!result[dayOfWeek]) {
-                result[dayOfWeek] = {};
-              }
-              if (!result[dayOfWeek][value.url]) {
-                result[dayOfWeek][value.url] = 0;
-              }
-
-              if (!result[dayOfWeek]["total"]) {
-                result[dayOfWeek]["total"] = 0;
-              }
-
-              var toadd =
-                Math.abs(startDate.getTime() - endDate.getTime()) / 1000;
-              result[dayOfWeek][value.url] += toadd;
-              result[dayOfWeek]["total"] += toadd;
-
-              DEBUG
-                ? console.log("+" + toadd + " seconds to " + value.url)
-                : null;
-
-              this.set(key, result).then(() => {
-                resolve();
-              });
-            });
-          }
+          Promise.all(promises).then(() => {
+            resolve();
+          });
         }
-      );
+
+        if (startDate <= curweekend && endDate > curweekend) {
+          // case when start and end dates span across multiple weeks
+          value.endTime = curweekend;
+          this.add(value).then(() => {
+            resolve();
+          });
+
+          const temp = new Date(curweekend);
+          temp.setDate(curweekend.getDate() + 1);
+          temp.setHours(0, 0, 0, 0);
+          value.startTime = temp;
+          value.endTime = endDate;
+
+          this.add(value).then(() => {
+            resolve();
+          });
+        } else if (startDate.getDay() !== endDate.getDay()) {
+          // at this point, we know that
+          // startDate <= curweekend && endDate <= curweekend
+          // however, it's still possible that startDate and endDate span across multiple days
+
+          value.endTime = new Date(startDate);
+          value.endTime.setHours(23, 59, 59, 999);
+
+          this.add(value).then(() => {
+            value.startTime = new Date(startDate);
+            value.startTime.setDate(startDate.getDate() + 1);
+            value.startTime.setHours(0, 0, 0, 0);
+            value.endTime = new Date(endDate);
+
+            this.add(value).then(() => {
+              resolve();
+            });
+          });
+        } else if (startDate.getDay() === endDate.getDay()) {
+          // at this point, we know that
+          // startDate.getDay() == endDate.getDay()
+
+          this.get(key).then((result) => {
+            const dayOfWeek = startDate.getDay().toString();
+            if (!result[dayOfWeek]) {
+              result[dayOfWeek] = {};
+            }
+            if (!result[dayOfWeek][value.url]) {
+              result[dayOfWeek][value.url] = 0;
+            }
+
+            if (!result[dayOfWeek]["total"]) {
+              result[dayOfWeek]["total"] = 0;
+            }
+
+            var toadd =
+              Math.abs(startDate.getTime() - endDate.getTime()) / 1000;
+            result[dayOfWeek][value.url] += toadd;
+            result[dayOfWeek]["total"] += toadd;
+
+            DEBUG
+              ? console.log("+" + toadd + " seconds to " + value.url)
+              : null;
+
+            this.set(key, result).then(() => {
+              resolve();
+            });
+          });
+        }
+      });
     });
   },
 
@@ -211,16 +211,20 @@ chrome.runtime.onInstalled.addListener(() => {
   const startweek = new Date(currentdate);
   startweek.setDate(currentdate.getDate() - currentdate.getDay());
   startweek.setHours(0, 0, 0, 0);
+  console.log("startweek" + startweek.toString())
 
   const endweek = new Date(startweek);
   endweek.setDate(startweek.getDate() + 6);
   endweek.setHours(23, 59, 59, 999);
+  console.log("endweek" + endweek.toString())
 
   Promise.all([
-    storage.set("limitify_curweek_start", startweek),
-    storage.set("limitify_curweek_end", endweek),
     storage.set("limitify_data", {}),
     storage.set("limitify_blocked", {}),
+    storage.set("limitify_curweek", {
+      start: startweek.getTime(),
+      end: endweek.getTime(),
+    }),
     storage.set("limitify_curtab", {
       id: null,
       url: "newtab",
