@@ -10,6 +10,8 @@ Key Features:
 - Weekly Graph: Visualizes your web usage trends over a week.
 - Website Blocker: Allows you to block specific websites to eliminate distractions.
 
-![poster 1](./public/chromestore/poster1.png)
-![poster 2](./public/chromestore/poster2.png)
-![poster 3](./public/chromestore/poster3.png)
+<p align="center">
+    <img src="./public/chromestore/poster1.png" alt="poster 1" width="650"/>
+    <img src="./public/chromestore/poster2.png" alt="poster 2" width="650"/>
+    <img src="./public/chromestore/poster3.png" alt="poster 3" width="650"/>
+</p>
