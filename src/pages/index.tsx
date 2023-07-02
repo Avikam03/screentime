@@ -118,19 +118,19 @@ export default function Home() {
   }, [selectedBarIndex]);
 
   return (
-    <main
-      className={`min-h-screen items-center justify-between ${inter.className}`}
+    <body
+      className={`bg-white dark:bg-[#232221] min-h-screen items-center justify-between ${inter.className}`}
     >
-      <div className="mx-3 my-3 place-items-center">
+      <div className="px-3 py-3 place-items-center">
         {loading ? (
-          <h2 className="mt-4 text-4xl font-extrabold text-white">
+          <h2 className="mt-4 text-4xl font-extrabold text-black dark:text-white">
             Loading...
           </h2>
         ) : null}
         {/* <h2 className="mt-4 text-xl font-extrabold text-white">Screen time for the week</h2> */}
 
-        <h2 className="ml-2 mt-4 text-lg text-white">Usage</h2>
-        <h1 className="ml-2 mt-2 text-4xl text-white">
+        <h2 className="ml-2 mt-4 text-lg text-black dark:text-white">Usage</h2>
+        <h1 className="ml-2 mt-2 text-4xl text-black dark:text-white">
           {
             processedData["total"] == undefined
               ? "no usage recorded"
@@ -158,14 +158,14 @@ export default function Home() {
                 <table className="min-w-full text-left text-sm font-light">
                   <thead className="border-b font-medium border-neutral-500">
                     <tr>
-                      <th scope="col" className="px-6 py-4 text-white">
+                      <th scope="col" className="px-6 py-4 text-black dark:text-white">
                         Website
                       </th>
-                      <th scope="col" className="px-6 py-4 text-white">
+                      <th scope="col" className="px-6 py-4 text-black dark:text-white">
                         Time
                       </th>
                       {selectedBarIndex == todayIndex ? (
-                        <th scope="col" className="px-6 py-4 text-white">
+                        <th scope="col" className="px-6 py-4 text-black dark:text-white">
                           Block
                         </th>
                       ) : null}
@@ -198,10 +198,10 @@ export default function Home() {
                                   }}
                                   alt=""
                                 />
-                                <div className="ml-2 text-white">{key}</div>
+                                <div className="ml-2 text-black dark:text-white">{key}</div>
                               </div>
                             </td>
-                            <td className="whitespace-nowrap px-6 py-4 text-white">
+                            <td className="whitespace-nowrap px-6 py-4 text-black dark:text-white">
                               {
                                 Math.ceil(processedData[key]) > 3600
                                   ? Math.floor(
@@ -246,6 +246,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </main>
+    </body>
   );
 }
