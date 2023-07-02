@@ -211,12 +211,12 @@ chrome.runtime.onInstalled.addListener(() => {
   const startweek = new Date(currentdate);
   startweek.setDate(currentdate.getDate() - currentdate.getDay());
   startweek.setHours(0, 0, 0, 0);
-  console.log("startweek" + startweek.toString())
+  console.log("startweek set to: " + startweek.toString())
 
   const endweek = new Date(startweek);
   endweek.setDate(startweek.getDate() + 6);
   endweek.setHours(23, 59, 59, 999);
-  console.log("endweek" + endweek.toString())
+  console.log("endweek set to: " + endweek.toString())
 
   Promise.all([
     storage.set("limitify_data", {}),
