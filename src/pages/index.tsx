@@ -123,14 +123,14 @@ export default function Home() {
     >
       <div className="mx-3 my-3 place-items-center">
         {loading ? (
-          <h2 className="mt-4 text-4xl font-extrabold dark:text-white">
+          <h2 className="mt-4 text-4xl font-extrabold text-white">
             Loading...
           </h2>
         ) : null}
-        {/* <h2 className="mt-4 text-xl font-extrabold dark:text-white">Screen time for the week</h2> */}
+        {/* <h2 className="mt-4 text-xl font-extrabold text-white">Screen time for the week</h2> */}
 
-        <h2 className="ml-2 mt-4 text-lg dark:text-white">Usage</h2>
-        <h1 className="ml-2 mt-2 text-4xl dark:text-white">
+        <h2 className="ml-2 mt-4 text-lg text-white">Usage</h2>
+        <h1 className="ml-2 mt-2 text-4xl text-white">
           {
             processedData["total"] == undefined
               ? "no usage recorded"
@@ -156,16 +156,16 @@ export default function Home() {
             <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
               <div className="overflow-hidden">
                 <table className="min-w-full text-left text-sm font-light">
-                  <thead className="border-b font-medium dark:border-neutral-500">
+                  <thead className="border-b font-medium border-neutral-500">
                     <tr>
-                      <th scope="col" className="px-6 py-4 dark:text-white">
+                      <th scope="col" className="px-6 py-4 text-white">
                         Website
                       </th>
-                      <th scope="col" className="px-6 py-4 dark:text-white">
+                      <th scope="col" className="px-6 py-4 text-white">
                         Time
                       </th>
                       {selectedBarIndex == todayIndex ? (
-                        <th scope="col" className="px-6 py-4 dark:text-white">
+                        <th scope="col" className="px-6 py-4 text-white">
                           Block
                         </th>
                       ) : null}
@@ -176,7 +176,7 @@ export default function Home() {
                       (key) =>
                         key != "total" && //(
                         key != "" && (
-                          <tr className="border-b dark:border-neutral-500">
+                          <tr className="border-b border-neutral-500">
                             <td className="whitespace-nowrap px-6 py-4 font-medium">
                               <div className="flex items-center">
                                 <Image
@@ -198,10 +198,10 @@ export default function Home() {
                                   }}
                                   alt=""
                                 />
-                                <div className="ml-2 dark:text-white">{key}</div>
+                                <div className="ml-2 text-white">{key}</div>
                               </div>
                             </td>
-                            <td className="whitespace-nowrap px-6 py-4 dark:text-white">
+                            <td className="whitespace-nowrap px-6 py-4 text-white">
                               {
                                 Math.ceil(processedData[key]) > 3600
                                   ? Math.floor(
@@ -232,7 +232,7 @@ export default function Home() {
                                     checked={blockedData[key]}
                                     onChange={handleToggle(key)}
                                   />
-                                  <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                                 </label>
                               </td>
                             ) : null}
