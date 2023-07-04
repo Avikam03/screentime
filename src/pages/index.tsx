@@ -14,6 +14,8 @@ type ScreenTime = {
 
 const urlFavicons: Record<string, string> = {
   "mail.google.com": "https://i.imgur.com/RONfcuW.png",
+  "calendar.google.com": "https://i.imgur.com/OoAyUL7.png",
+  // gotta also add for docs.google.com/document, /presentation, /spreadsheet
   "learn.uwaterloo.ca": "https://i.imgur.com/yVvwU3l.png",
   "web.whatsapp.com": "https://i.imgur.com/47PgHxi.png",
   "linkedin.com": "https://icon.horse/icon/linkedin.com",

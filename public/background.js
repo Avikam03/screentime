@@ -236,26 +236,41 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log("endweek set to: " + endweek.toString())
 
   Promise.all([
-    storage.set("limitify_data", {}),
-    storage.set("limitify_blocked", {}),
-    storage.set("limitify_curweek", {
-      start: startweek.getTime(),
-      end: endweek.getTime(),
-    }),
-    storage.set_local("limitify_curtab", {
-      id: null,
-      url: "newtab",
-      favicon: null,
-      title: null,
-      startTime: null,
-      endTime: null,
-    }),
+    storage.get("limitify_data"),
+    storage.get("limitify_blocked"),
+    storage.get("limitify_curweek"),
+    storage.get_local("limitify_curtab"),
   ])
-    .then(() => {
-      console.log("initialised storage.");
+    .then(([limitifyData, limitifyBlocked, limitifyCurweek, limitifyCurtab]) => {
+      console.log("limitifyData: " + JSON.stringify(limitifyData));
+      console.log("limitifyBlocked: " + JSON.stringify(limitifyBlocked));
+      console.log("limitifyCurweek: " + JSON.stringify(limitifyCurweek));
+      console.log("limitifyCurtab: " + JSON.stringify(limitifyCurtab));
+
+      Object.keys(limitifyData).length === 0 ? storage.set("limitify_data", {}) : null;
+      
+      Object.keys(limitifyBlocked).length === 0 ? storage.set("limitify_blocked", {}) : null;
+
+      Object.keys(limitifyCurweek).length === 0 ? storage.set("limitify_curweek", 
+      {
+        start: startweek.getTime(),
+        end: endweek.getTime(),
+      }) : null;
+
+      Object.keys(limitifyCurtab).length === 0 ? storage.set_local("limitify_curtab", 
+      {
+        id: null,
+        url: "newtab",
+        favicon: null,
+        title: null,
+        startTime: null,
+        endTime: null,
+      }) : null;
+      
+      console.log("Initialized storage.");
     })
     .catch((error) => {
-      console.log("ERROR: Failed to initialise storage", error);
+      console.log("ERROR: Failed to initialize storage", error);
     });
 });
 
