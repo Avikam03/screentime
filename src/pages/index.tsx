@@ -17,7 +17,9 @@ const urlFavicons: Record<string, string> = {
   "learn.uwaterloo.ca": "https://i.imgur.com/yVvwU3l.png",
   "web.whatsapp.com": "https://i.imgur.com/47PgHxi.png",
   "linkedin.com": "https://icon.horse/icon/linkedin.com",
-  "www.linkedin.com": "https://icon.horse/icon/linkedin.com"
+  "www.linkedin.com": "https://icon.horse/icon/linkedin.com",
+  "app.crowdmark.com": "https://crowdmark.com/wp-content/uploads/2022/10/favicon.png",
+  "adfs.uwaterloo.ca": "https://uwaterloo.ca/favicon.ico", 
 };
 
 export default function Home() {
