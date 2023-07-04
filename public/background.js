@@ -197,6 +197,15 @@ const storage = {
     });
   },
 
+  set_local(key, value) {
+    return new Promise((resolve) => {
+      const data = { [key]: value };
+      chrome.storage.local.set(data, () => {
+        resolve();
+      });
+    });
+  },
+
   get(key) {
     return new Promise((resolve) => {
       chrome.storage.sync.get([key], (result) => {
@@ -204,6 +213,14 @@ const storage = {
       });
     });
   },
+
+  get_local(key) {
+    return new Promise((resolve) => {
+      chrome.storage.local.get([key], (result) => {
+        resolve(result[key] || []);
+      });
+    });
+  }
 };
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -225,7 +242,7 @@ chrome.runtime.onInstalled.addListener(() => {
       start: startweek.getTime(),
       end: endweek.getTime(),
     }),
-    storage.set("limitify_curtab", {
+    storage.set_local("limitify_curtab", {
       id: null,
       url: "newtab",
       favicon: null,
@@ -261,7 +278,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
     var storageCurTabReal = {};
 
     storage
-      .get("limitify_curtab")
+      .get_local("limitify_curtab")
       .then((result) => {
         storageCurTabReal = result;
         if (
@@ -282,7 +299,7 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
         }
       })
       .then(() => {
-        return storage.set("limitify_curtab", {
+        return storage.set_local("limitify_curtab", {
           id: null,
           url: "newtab",
           favicon: null,
@@ -311,7 +328,7 @@ function changedTo(tabId, tab) {
   const timenow = new Date();
 
   storage
-    .get("limitify_curtab")
+    .get_local("limitify_curtab")
     .then((result) => {
       storageCurTabReal = result;
       if (
@@ -354,7 +371,7 @@ function changedTo(tabId, tab) {
         startTime: Date.now(),
         endTime: null,
       };
-      return storage.set("limitify_curtab", storageCurTabReal);
+      return storage.set_local("limitify_curtab", storageCurTabReal);
     })
     .catch((error) => {
       console.log("ERROR: Failed to update tab data:", error);
@@ -378,7 +395,7 @@ function changedTo(tabId, tab) {
 function endCurTab() {
   var storageCurTabReal = {};
   storage
-    .get("limitify_curtab")
+    .get_local("limitify_curtab")
     .then((result) => {
       storageCurTabReal = result;
       if (
@@ -407,7 +424,7 @@ function endCurTab() {
         startTime: null,
         endTime: null,
       };
-      return storage.set("limitify_curtab", storageCurTabReal);
+      return storage.set_local("limitify_curtab", storageCurTabReal);
     })
     .catch((error) => {
       console.log("ERROR: Failed to update tab data:", error);
