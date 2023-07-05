@@ -90,8 +90,6 @@ const storage = {
       this.get("limitify_curweek").then((curweek) => {
         var curweekstart = new Date(curweek.start);
         var curweekend = new Date(curweek.end);
-        console.log("curWeekStart " + curweekstart.toString());
-        console.log("curWeekEnd " + curweekend.toString());
 
         if (startDate > curweekend) {
           DEBUG ? console.log('NEW WEEK: updating curweek in storage & reseting all data') : null;
