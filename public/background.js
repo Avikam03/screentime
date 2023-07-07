@@ -78,6 +78,7 @@ const chromeurls = [
   "chrome://webrtc-logs",
   "chrome://whats-new",
   "chrome://internals/session-service",
+  "chrome://extensionpage"
 ];
 
 const storage = {
@@ -338,6 +339,10 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 function changedTo(tabId, tab) {
   var storageCurTabReal = {};
   const changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
+  if ((tab.url).length >= 19 && (tab.url).substring(0, 19) == "chrome-extension://") {
+    console.log("changed to extension page")
+    changeurl.hostname = "extensionpage";
+  }
   const timenow = new Date();
 
   storage
