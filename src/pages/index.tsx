@@ -123,7 +123,7 @@ export default function Home() {
 
   return (
     <body
-      className={`bg-white dark:bg-[#232221] min-h-screen items-center justify-between ${inter.className}`}
+      className={`bg-white dark:bg-[#272624] min-h-screen items-center justify-between ${inter.className}`}
     >
       <div className="px-3 py-3 place-items-center">
         {loading ? (
@@ -177,10 +177,11 @@ export default function Home() {
                   </thead>
                   <tbody>
                     {Object.keys(processedData).map(
-                      (key) =>
+                      (key, idx) =>
                         key != "total" && //(
                         key != "" && (
-                          <tr className="border-b border-neutral-500">
+                          // <tr className="border-b border-neutral-500">
+                          <tr className={idx % 2 == 0 ? "bg-[#f4f5f5] dark:bg-[#31302e]" : ""}>
                             <td className="whitespace-nowrap px-6 py-4 font-medium">
                               <div className="flex items-center">
                                 <Image
@@ -236,7 +237,7 @@ export default function Home() {
                                     checked={blockedData[key]}
                                     onChange={handleToggle(key)}
                                   />
-                                  <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                  <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#3b82f7]"></div>
                                 </label>
                               </td>
                             ) : null}

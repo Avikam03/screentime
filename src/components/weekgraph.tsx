@@ -81,7 +81,7 @@ const WeekGraph: React.FC<WeekGraphProps> = ({
       .attr("y", (d) => yScale(d))
       .attr("width", xScale.bandwidth())
       .attr("height", (d) => chartHeight - yScale(d))
-      .attr("fill", (d, i) => (i === selectedBar ? "#007AFF" : "#565657"))
+      .attr("fill", (d, i) => (i === selectedBar ? "#3b82f7" : "#565657"))
       .attr("rx", 4) // Rounded corner radius for x-axis
       .attr("ry", 4) // Rounded corner radius for y-axis
       .on("click", (event, d) => {
