@@ -261,7 +261,7 @@ chrome.runtime.onInstalled.addListener(() => {
         url: "newtab",
         favicon: null,
         title: null,
-        startTime: null,
+        startTime: Date.now(),
         endTime: null,
       }) : null;
       
@@ -312,12 +312,12 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
         }
       })
       .then(() => {
-        return storage.set_local("limitify_curtab", {
+        storage.set_local("limitify_curtab", {
           id: null,
           url: "newtab",
           favicon: null,
           title: null,
-          startTime: null,
+          startTime: Date.now(),
           endTime: null,
         });
       })
@@ -406,6 +406,7 @@ function changedTo(tabId, tab) {
 }
 
 function endCurTab() {
+  var timenow = new Date(); 
   var storageCurTabReal = {};
   storage
     .get_local("limitify_curtab")
@@ -415,10 +416,9 @@ function endCurTab() {
         !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
         storageCurTabReal.url !== ""
       ) {
-        var timenow = new Date();
         DEBUG
           ? console.log(
-              "IDLE: left " +
+              "left " +
                 storageCurTabReal.url +
                 " at time: " +
                 timenow.toLocaleTimeString()
@@ -434,10 +434,10 @@ function endCurTab() {
         url: "newtab",
         favicon: null,
         title: null,
-        startTime: null,
+        startTime: Date.now(),
         endTime: null,
       };
-      return storage.set_local("limitify_curtab", storageCurTabReal);
+      storage.set_local("limitify_curtab", storageCurTabReal);
     })
     .catch((error) => {
       console.log("ERROR: Failed to update tab data:", error);
@@ -445,16 +445,47 @@ function endCurTab() {
 }
 
 chrome.idle.onStateChanged.addListener((newState) => {
+  DEBUG ? console.log("CHANGED STATE TO: " + newState) : null;
   if (newState === "idle") {
+    DEBUG ? console.log("IDLE: gone into idling") : null;
     endCurTab();
   } else if (newState === "active") {
+    DEBUG ? console.log("ACTIVE: back from being idle") : null;
     getCurrentTab()
       .then((tab) => {
-        changedTo(tab.id, tab);
+        var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
+        var timenow = new Date();
+        
+        DEBUG
+        ? changeurl.hostname != ""
+          ? console.log(
+              "changed to " +
+                changeurl.hostname +
+                " at time: " +
+                timenow.toLocaleTimeString()
+            )
+          : console.log(
+              "changed to " +
+                "local file" +
+                " at time: " +
+                timenow.toLocaleTimeString()
+            )
+        : null;
+
+        storage.set_local("limitify_curtab", {
+          id: tab.id,
+          url: changeurl.hostname,
+          title: tab.title,
+          startTime: Date.now(),
+          endTime: null,
+        });
       })
       .catch((error) => {
         console.log("ERROR: Failed to get current tab:", error);
       });
+  } else if (newState === "locked") {
+    DEBUG ? console.log("LOCKED: gone into locked") : null;
+    endCurTab();
   }
 });
 
