@@ -62,47 +62,76 @@ export default function Home() {
     if (typeof window !== "undefined") {
       Promise.all([
         import("../../public/storage.js").then((storage) =>
-          storage.default.get("limitify_data")
+          storage.default.get("data_0")
+        ),
+        import("../../public/storage.js").then((storage) =>
+          storage.default.get("data_1")
+        ),
+        import("../../public/storage.js").then((storage) =>
+          storage.default.get("data_2")
+        ),
+        import("../../public/storage.js").then((storage) =>
+          storage.default.get("data_3")
+        ),
+        import("../../public/storage.js").then((storage) =>
+          storage.default.get("data_4")
+        ),
+        import("../../public/storage.js").then((storage) =>
+          storage.default.get("data_5")
+        ),
+        import("../../public/storage.js").then((storage) =>
+          storage.default.get("data_6")
         ),
         import("../../public/storage.js").then((storage) =>
           storage.default.get("limitify_blocked")
         ),
-      ]).then(([result, blockedResult]) => {
-        if (result) {
-          var curDate = new Date();
+      ]).then(([data0, data1, data2, data3, data4, data5, data6, blockedResult]) => {
+        
+        var tempAllData : ScreenTime = {
+          "0": data0,
+          "1": data1,
+          "2": data2,
+          "3": data3,
+          "4": data4,
+          "5": data5,
+          "6": data6,
+        };
 
-          setSelectedBarIndex(curDate.getDay());
-          setTodayIndex(curDate.getDay());
-          setAllData(result);
+        var curDate = new Date();
 
-          // Process "limitify_data"
-          var todaysData: { [key: string]: number } =
-            result[curDate.getDay().toString()] || {};
-          var sortedData = Object.entries(todaysData).sort(
-            (a, b) => b[1] - a[1]
-          );
-          todaysData = Object.fromEntries(sortedData);
-          setProcessedData(todaysData);
-          
-          console.log("today's data: ");
-          console.log(todaysData);
+        setSelectedBarIndex(curDate.getDay());
+        setTodayIndex(curDate.getDay());
+        setAllData(tempAllData);
 
-          // Process "limitify_blocked"
-          if (blockedResult) {
-            setBlockedData(blockedResult);
-          }
+        // Process tempAllData
+        var todaysData: { [key: string]: number } =
+          tempAllData[curDate.getDay().toString()] || {};
 
-          var weekData = [];
-          weekData.push(result["0"]?.total || 0);
-          weekData.push(result["1"]?.total || 0);
-          weekData.push(result["2"]?.total || 0);
-          weekData.push(result["3"]?.total || 0);
-          weekData.push(result["4"]?.total || 0);
-          weekData.push(result["5"]?.total || 0);
-          weekData.push(result["6"]?.total || 0);
+        var sortedData = Object.entries(todaysData).sort(
+          (a, b) => b[1] - a[1]
+        );
+        todaysData = Object.fromEntries(sortedData);
+        setProcessedData(todaysData);
+        
+        console.log("today's data: ");
+        console.log(todaysData);
 
-          setWeekData(weekData);
+        // Process "limitify_blocked"
+        if (blockedResult) {
+          setBlockedData(blockedResult);
         }
+
+        var weekData = [];
+        weekData.push(tempAllData["0"]?.total || 0);
+        weekData.push(tempAllData["1"]?.total || 0);
+        weekData.push(tempAllData["2"]?.total || 0);
+        weekData.push(tempAllData["3"]?.total || 0);
+        weekData.push(tempAllData["4"]?.total || 0);
+        weekData.push(tempAllData["5"]?.total || 0);
+        weekData.push(tempAllData["6"]?.total || 0);
+
+        setWeekData(weekData);
+      
 
         setLoading(false);
       });

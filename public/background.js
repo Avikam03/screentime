@@ -83,7 +83,7 @@ const chromeurls = [
 
 const storage = {
   add(value) {
-    const key = "limitify_data";
+    const key = "data";
     return new Promise((resolve) => {
       const startDate = new Date(value.startTime);
       const endDate = new Date(value.endTime);
@@ -110,7 +110,13 @@ const storage = {
               start: startweek.getTime(),
               end: endweek.getTime(),
             }),
-            this.set(key, {}),
+            this.set(key + "_0", {}),
+            this.set(key + "_1", {}),
+            this.set(key + "_2", {}),
+            this.set(key + "_3", {}),
+            this.set(key + "_4", {}),
+            this.set(key + "_5", {}),
+            this.set(key + "_6", {}),
           ];
 
           Promise.all(promises).then(() => {
@@ -156,29 +162,29 @@ const storage = {
           // at this point, we know that
           // startDate.getDay() == endDate.getDay()
 
-          this.get(key).then((result) => {
-            const dayOfWeek = startDate.getDay().toString();
-            if (!result[dayOfWeek]) {
-              result[dayOfWeek] = {};
+          const dayOfWeek = startDate.getDay().toString();
+          this.get((key + "_" + dayOfWeek)).then((result) => {
+            if (Object.keys(result).length === 0) {
+              result = {};
             }
-            if (!result[dayOfWeek][value.url]) {
-              result[dayOfWeek][value.url] = 0;
+            if (!result.hasOwnProperty(value.url)) {
+              result[value.url] = 0;
             }
 
-            if (!result[dayOfWeek]["total"]) {
-              result[dayOfWeek]["total"] = 0;
+            if (!result.hasOwnProperty("total")) {
+              result["total"] = 0;
             }
 
             var toadd =
               Math.abs(startDate.getTime() - endDate.getTime()) / 1000;
-            result[dayOfWeek][value.url] += toadd;
-            result[dayOfWeek]["total"] += toadd;
+            result[value.url] += toadd;
+            result["total"] += toadd;
 
             DEBUG
               ? console.log("+" + toadd + " seconds to " + value.url)
               : null;
 
-            this.set(key, result).then(() => {
+            this.set((key + "_" + dayOfWeek), result).then(() => {
               resolve();
             });
           });
@@ -235,19 +241,31 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log("endweek set to: " + endweek.toString())
 
   Promise.all([
-    storage.get("limitify_data"),
+    storage.get("data_0"),
+    storage.get("data_1"),
+    storage.get("data_2"),
+    storage.get("data_3"),
+    storage.get("data_4"),
+    storage.get("data_5"),
+    storage.get("data_6"),
+
     storage.get("limitify_blocked"),
     storage.get("limitify_curweek"),
     storage.get_local("limitify_curtab"),
   ])
-    .then(([limitifyData, limitifyBlocked, limitifyCurweek, limitifyCurtab]) => {
-      console.log("limitifyData: " + JSON.stringify(limitifyData));
+    .then(([data0, data1, data2, data3, data4, data5, data6, limitifyBlocked, limitifyCurweek, limitifyCurtab]) => {
+      console.log("sunday: " + JSON.stringify(data0));
+      console.log("monday: " + JSON.stringify(data1));
+      console.log("tuesday: " + JSON.stringify(data2));
+      console.log("wednesday: " + JSON.stringify(data3));
+      console.log("thursday: " + JSON.stringify(data4));
+      console.log("friday: " + JSON.stringify(data5));
+      console.log("saturday: " + JSON.stringify(data6));
       console.log("limitifyBlocked: " + JSON.stringify(limitifyBlocked));
       console.log("limitifyCurweek: " + JSON.stringify(limitifyCurweek));
       console.log("limitifyCurtab: " + JSON.stringify(limitifyCurtab));
-
-      Object.keys(limitifyData).length === 0 ? storage.set("limitify_data", {}) : null;
       
+      storage.set("limitify_data", {});
       Object.keys(limitifyBlocked).length === 0 ? storage.set("limitify_blocked", {}) : null;
 
       Object.keys(limitifyCurweek).length === 0 ? storage.set("limitify_curweek", 
