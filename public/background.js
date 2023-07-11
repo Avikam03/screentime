@@ -78,7 +78,6 @@ const chromeurls = [
   "chrome://webrtc-logs",
   "chrome://whats-new",
   "chrome://internals/session-service",
-  "chrome://extensionpage"
 ];
 
 const storage = {
@@ -131,7 +130,7 @@ const storage = {
             resolve();
           });
 
-          const temp = new Date(curweekend);
+          var temp = new Date(curweekend);
           temp.setDate(curweekend.getDate() + 1);
           temp.setHours(0, 0, 0, 0);
           value.startTime = temp;
@@ -307,43 +306,10 @@ function getCurrentTab() {
 chrome.windows.onFocusChanged.addListener((windowId) => {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     // Set end time of the current tab in storage to right now
-    var storageCurTabReal = {};
-
-    storage
-      .get_local("limitify_curtab")
-      .then((result) => {
-        storageCurTabReal = result;
-        if (
-          !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
-          storageCurTabReal.url !== ""
-        ) {
-          var timenow = new Date();
-          DEBUG
-            ? console.log(
-                "windowOnChanged: left " +
-                  storageCurTabReal.url +
-                  " at time: " +
-                  timenow.toLocaleTimeString()
-              )
-            : null;
-          storageCurTabReal.endTime = Date.now();
-          return storage.add(storageCurTabReal);
-        }
-      })
-      .then(() => {
-        storage.set_local("limitify_curtab", {
-          id: null,
-          url: "newtab",
-          favicon: null,
-          title: null,
-          startTime: Date.now(),
-          endTime: null,
-        });
-      })
-      .catch((error) => {
-        console.log("ERROR: Failed to update tab data:", error);
-      });
+    DEBUG ? console.log("WINDOW_LOST_FOCUS: left browser window(s)") : null;
+    endCurTab();
   } else {
+    DEBUG ? console.log("SWITCHED_WINDOWS: changed browser windows") : null;
     getCurrentTab()
       .then((tab) => {
         changedTo(tab.id, tab);
@@ -356,21 +322,24 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 
 function changedTo(tabId, tab) {
   var storageCurTabReal = {};
-  const changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
+  var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
   if ((tab.url).length >= 19 && (tab.url).substring(0, 19) == "chrome-extension://") {
-    console.log("changed to extension page")
-    changeurl.hostname = "extensionpage";
+    DEBUG ? console.log("changed to extension page") : null;
+    changeurl = new URL("chrome://newtab/");
   }
+
+  if ((tab.url).length >= 5 && (tab.url).substring(0, 5) == "file:") {
+    DEBUG ? console.log("changed to file page") : null
+    changeurl = new URL("chrome://newtab/");
+  }
+
   const timenow = new Date();
 
   storage
     .get_local("limitify_curtab")
     .then((result) => {
       storageCurTabReal = result;
-      if (
-        !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
-        storageCurTabReal.url !== ""
-      ) {
+      if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
         DEBUG
           ? console.log(
               "left " +
@@ -384,21 +353,18 @@ function changedTo(tabId, tab) {
       }
     })
     .then(() => {
-      DEBUG
-        ? changeurl.hostname != ""
-          ? console.log(
-              "changed to " +
-                changeurl.hostname +
-                " at time: " +
-                timenow.toLocaleTimeString()
-            )
-          : console.log(
-              "changed to " +
-                "local file" +
-                " at time: " +
-                timenow.toLocaleTimeString()
-            )
+      DEBUG ?
+        console.log(
+          "changed to " +
+          changeurl.hostname +
+          " at time: " +
+          timenow.toLocaleTimeString()
+        ) 
         : null;
+      
+      if (chromeurls.includes("chrome://" + changeurl.hostname) && chromeurls.includes("chrome://" + storageCurTabReal.url)) {
+        return;
+      }
 
       storageCurTabReal = {
         id: tabId,
@@ -515,12 +481,14 @@ chrome.idle.onStateChanged.addListener((newState) => {
 // used when the user changes url in the same tab
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") {
+    // DEBUG ? console.log("UPDATED: changed url in same tab") : null;
     changedTo(tabId, tab);
   }
 });
 
 // used when the user changes tab (includes creating a new tab)
 chrome.tabs.onActivated.addListener((activeInfo) => {
+  // DEBUG ? console.log("CHANGED: changed tabs") : null;
   chrome.tabs.get(activeInfo.tabId, (tab) => {
     changedTo(tab.id, tab);
   });
