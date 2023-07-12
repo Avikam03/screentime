@@ -443,32 +443,7 @@ chrome.idle.onStateChanged.addListener((newState) => {
     DEBUG ? console.log("ACTIVE: back from being idle") : null;
     getCurrentTab()
       .then((tab) => {
-        var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
-        var timenow = new Date();
-
-        DEBUG
-          ? changeurl.hostname != ""
-            ? console.log(
-                "changed to " +
-                  changeurl.hostname +
-                  " at time: " +
-                  timenow.toLocaleTimeString()
-              )
-            : console.log(
-                "changed to " +
-                  "local file" +
-                  " at time: " +
-                  timenow.toLocaleTimeString()
-              )
-          : null;
-
-        storage.set_local("limitify_curtab", {
-          id: tab.id,
-          url: changeurl.hostname,
-          title: tab.title,
-          startTime: Date.now(),
-          endTime: null,
-        });
+        changedTo(tab.id, tab);
       })
       .catch((error) => {
         console.log("ERROR: Failed to get current tab:", error);
