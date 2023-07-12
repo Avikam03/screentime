@@ -92,7 +92,11 @@ const storage = {
         var curweekend = new Date(curweek.end);
 
         if (startDate > curweekend) {
-          DEBUG ? console.log('NEW WEEK: updating curweek in storage & reseting all data') : null;
+          DEBUG
+            ? console.log(
+                "NEW WEEK: updating curweek in storage & reseting all data"
+              )
+            : null;
           // new week
           // set curweekstart to start of new week
           // set curweekend to end of new week
@@ -162,7 +166,7 @@ const storage = {
           // startDate.getDay() == endDate.getDay()
 
           const dayOfWeek = startDate.getDay().toString();
-          this.get((key + "_" + dayOfWeek)).then((result) => {
+          this.get(key + "_" + dayOfWeek).then((result) => {
             if (Object.keys(result).length === 0) {
               result = {};
             }
@@ -183,7 +187,7 @@ const storage = {
               ? console.log("+" + toadd + " seconds to " + value.url)
               : null;
 
-            this.set((key + "_" + dayOfWeek), result).then(() => {
+            this.set(key + "_" + dayOfWeek, result).then(() => {
               resolve();
             });
           });
@@ -224,7 +228,7 @@ const storage = {
         resolve(result[key] || []);
       });
     });
-  }
+  },
 };
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -232,12 +236,12 @@ chrome.runtime.onInstalled.addListener(() => {
   const startweek = new Date(currentdate);
   startweek.setDate(currentdate.getDate() - currentdate.getDay());
   startweek.setHours(0, 0, 0, 0);
-  console.log("startweek set to: " + startweek.toString())
+  console.log("startweek set to: " + startweek.toString());
 
   const endweek = new Date(startweek);
   endweek.setDate(startweek.getDate() + 6);
   endweek.setHours(23, 59, 59, 999);
-  console.log("endweek set to: " + endweek.toString())
+  console.log("endweek set to: " + endweek.toString());
 
   Promise.all([
     storage.get("data_0"),
@@ -252,39 +256,56 @@ chrome.runtime.onInstalled.addListener(() => {
     storage.get("limitify_curweek"),
     storage.get_local("limitify_curtab"),
   ])
-    .then(([data0, data1, data2, data3, data4, data5, data6, limitifyBlocked, limitifyCurweek, limitifyCurtab]) => {
-      console.log("sunday: " + JSON.stringify(data0));
-      console.log("monday: " + JSON.stringify(data1));
-      console.log("tuesday: " + JSON.stringify(data2));
-      console.log("wednesday: " + JSON.stringify(data3));
-      console.log("thursday: " + JSON.stringify(data4));
-      console.log("friday: " + JSON.stringify(data5));
-      console.log("saturday: " + JSON.stringify(data6));
-      console.log("limitifyBlocked: " + JSON.stringify(limitifyBlocked));
-      console.log("limitifyCurweek: " + JSON.stringify(limitifyCurweek));
-      console.log("limitifyCurtab: " + JSON.stringify(limitifyCurtab));
-      
-      storage.set("limitify_data", {});
-      Object.keys(limitifyBlocked).length === 0 ? storage.set("limitify_blocked", {}) : null;
+    .then(
+      ([
+        data0,
+        data1,
+        data2,
+        data3,
+        data4,
+        data5,
+        data6,
+        limitifyBlocked,
+        limitifyCurweek,
+        limitifyCurtab,
+      ]) => {
+        console.log("sunday: " + JSON.stringify(data0));
+        console.log("monday: " + JSON.stringify(data1));
+        console.log("tuesday: " + JSON.stringify(data2));
+        console.log("wednesday: " + JSON.stringify(data3));
+        console.log("thursday: " + JSON.stringify(data4));
+        console.log("friday: " + JSON.stringify(data5));
+        console.log("saturday: " + JSON.stringify(data6));
+        console.log("limitifyBlocked: " + JSON.stringify(limitifyBlocked));
+        console.log("limitifyCurweek: " + JSON.stringify(limitifyCurweek));
+        console.log("limitifyCurtab: " + JSON.stringify(limitifyCurtab));
 
-      Object.keys(limitifyCurweek).length === 0 ? storage.set("limitify_curweek", 
-      {
-        start: startweek.getTime(),
-        end: endweek.getTime(),
-      }) : null;
+        storage.set("limitify_data", {});
+        Object.keys(limitifyBlocked).length === 0
+          ? storage.set("limitify_blocked", {})
+          : null;
 
-      Object.keys(limitifyCurtab).length === 0 ? storage.set_local("limitify_curtab", 
-      {
-        id: null,
-        url: "newtab",
-        favicon: null,
-        title: null,
-        startTime: Date.now(),
-        endTime: null,
-      }) : null;
-      
-      console.log("Initialized storage.");
-    })
+        Object.keys(limitifyCurweek).length === 0
+          ? storage.set("limitify_curweek", {
+              start: startweek.getTime(),
+              end: endweek.getTime(),
+            })
+          : null;
+
+        Object.keys(limitifyCurtab).length === 0
+          ? storage.set_local("limitify_curtab", {
+              id: null,
+              url: "newtab",
+              favicon: null,
+              title: null,
+              startTime: Date.now(),
+              endTime: null,
+            })
+          : null;
+
+        console.log("Initialized storage.");
+      }
+    )
     .catch((error) => {
       console.log("ERROR: Failed to initialize storage", error);
     });
@@ -323,13 +344,16 @@ chrome.windows.onFocusChanged.addListener((windowId) => {
 function changedTo(tabId, tab) {
   var storageCurTabReal = {};
   var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
-  if ((tab.url).length >= 19 && (tab.url).substring(0, 19) == "chrome-extension://") {
+  if (
+    tab.url.length >= 19 &&
+    tab.url.substring(0, 19) == "chrome-extension://"
+  ) {
     DEBUG ? console.log("changed to extension page") : null;
     changeurl = new URL("chrome://newtab/");
   }
 
-  if ((tab.url).length >= 5 && (tab.url).substring(0, 5) == "file:") {
-    DEBUG ? console.log("changed to file page") : null
+  if (tab.url.length >= 5 && tab.url.substring(0, 5) == "file:") {
+    DEBUG ? console.log("changed to file page") : null;
     changeurl = new URL("chrome://newtab/");
   }
 
@@ -353,16 +377,19 @@ function changedTo(tabId, tab) {
       }
     })
     .then(() => {
-      DEBUG ?
-        console.log(
-          "changed to " +
-          changeurl.hostname +
-          " at time: " +
-          timenow.toLocaleTimeString()
-        ) 
+      DEBUG
+        ? console.log(
+            "changed to " +
+              changeurl.hostname +
+              " at time: " +
+              timenow.toLocaleTimeString()
+          )
         : null;
-      
-      if (chromeurls.includes("chrome://" + changeurl.hostname) && chromeurls.includes("chrome://" + storageCurTabReal.url)) {
+
+      if (
+        chromeurls.includes("chrome://" + changeurl.hostname) &&
+        chromeurls.includes("chrome://" + storageCurTabReal.url)
+      ) {
         return;
       }
 
@@ -378,6 +405,10 @@ function changedTo(tabId, tab) {
     .catch((error) => {
       console.log("ERROR: Failed to update tab data:", error);
     });
+
+  if (chromeurls.includes("chrome://" + changeurl.hostname)) {
+    return;
+  }
 
   storage.get("limitify_blocked").then((result) => {
     if (result[changeurl.hostname]) {
@@ -395,16 +426,13 @@ function changedTo(tabId, tab) {
 }
 
 function endCurTab() {
-  var timenow = new Date(); 
+  var timenow = new Date();
   var storageCurTabReal = {};
   storage
     .get_local("limitify_curtab")
     .then((result) => {
       storageCurTabReal = result;
-      if (
-        !chromeurls.includes("chrome://" + storageCurTabReal.url) &&
-        storageCurTabReal.url !== ""
-      ) {
+      if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
         DEBUG
           ? console.log(
               "left " +
@@ -444,22 +472,22 @@ chrome.idle.onStateChanged.addListener((newState) => {
       .then((tab) => {
         var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
         var timenow = new Date();
-        
+
         DEBUG
-        ? changeurl.hostname != ""
-          ? console.log(
-              "changed to " +
-                changeurl.hostname +
-                " at time: " +
-                timenow.toLocaleTimeString()
-            )
-          : console.log(
-              "changed to " +
-                "local file" +
-                " at time: " +
-                timenow.toLocaleTimeString()
-            )
-        : null;
+          ? changeurl.hostname != ""
+            ? console.log(
+                "changed to " +
+                  changeurl.hostname +
+                  " at time: " +
+                  timenow.toLocaleTimeString()
+              )
+            : console.log(
+                "changed to " +
+                  "local file" +
+                  " at time: " +
+                  timenow.toLocaleTimeString()
+              )
+          : null;
 
         storage.set_local("limitify_curtab", {
           id: tab.id,
