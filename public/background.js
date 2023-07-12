@@ -426,39 +426,12 @@ function changedTo(tabId, tab) {
 }
 
 function endCurTab() {
-  var timenow = new Date();
-  var storageCurTabReal = {};
-  storage
-    .get_local("limitify_curtab")
-    .then((result) => {
-      storageCurTabReal = result;
-      if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
-        DEBUG
-          ? console.log(
-              "left " +
-                storageCurTabReal.url +
-                " at time: " +
-                timenow.toLocaleTimeString()
-            )
-          : null;
-        storageCurTabReal.endTime = Date.now();
-        return storage.add(storageCurTabReal);
-      }
-    })
-    .then(() => {
-      storageCurTabReal = {
-        id: null,
-        url: "newtab",
-        favicon: null,
-        title: null,
-        startTime: Date.now(),
-        endTime: null,
-      };
-      storage.set_local("limitify_curtab", storageCurTabReal);
-    })
-    .catch((error) => {
-      console.log("ERROR: Failed to update tab data:", error);
-    });
+  var tab = {
+    id: -1,
+    url: "chrome://newtab/",
+    title: null,
+  };
+  changedTo(tab.id, tab);
 }
 
 chrome.idle.onStateChanged.addListener((newState) => {
