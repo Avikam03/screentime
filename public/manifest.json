@@ -1,6 +1,6 @@
 {
     "name": "ScreenTime",
-    "description": "ScreenTime app inspired by the iOS screentime feature",
+    "description": "tldr; browser screen time plugin",
     "version": "1.0.8",
     "manifest_version": 3,
     "icons": {
