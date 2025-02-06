@@ -15,13 +15,13 @@ type ScreenTime = {
 const urlFavicons: Record<string, string> = {
   "mail.google.com": "https://i.imgur.com/RONfcuW.png",
   "calendar.google.com": "https://i.imgur.com/OoAyUL7.png",
-  // gotta also add for docs.google.com/document, /presentation, /spreadsheet
   "learn.uwaterloo.ca": "https://i.imgur.com/yVvwU3l.png",
   "web.whatsapp.com": "https://i.imgur.com/47PgHxi.png",
   "linkedin.com": "https://icon.horse/icon/linkedin.com",
   "www.linkedin.com": "https://icon.horse/icon/linkedin.com",
-  "app.crowdmark.com": "https://crowdmark.com/wp-content/uploads/2022/10/favicon.png",
-  "adfs.uwaterloo.ca": "https://uwaterloo.ca/favicon.ico", 
+  "app.crowdmark.com":
+    "https://crowdmark.com/wp-content/uploads/2022/10/favicon.png",
+  "adfs.uwaterloo.ca": "https://uwaterloo.ca/favicon.ico",
 };
 
 export default function Home() {
@@ -85,56 +85,56 @@ export default function Home() {
         import("../../public/storage.js").then((storage) =>
           storage.default.get("limitify_blocked")
         ),
-      ]).then(([data0, data1, data2, data3, data4, data5, data6, blockedResult]) => {
-        
-        var tempAllData : ScreenTime = {
-          "0": data0,
-          "1": data1,
-          "2": data2,
-          "3": data3,
-          "4": data4,
-          "5": data5,
-          "6": data6,
-        };
+      ]).then(
+        ([data0, data1, data2, data3, data4, data5, data6, blockedResult]) => {
+          var tempAllData: ScreenTime = {
+            "0": data0,
+            "1": data1,
+            "2": data2,
+            "3": data3,
+            "4": data4,
+            "5": data5,
+            "6": data6,
+          };
 
-        var curDate = new Date();
+          var curDate = new Date();
 
-        setSelectedBarIndex(curDate.getDay());
-        setTodayIndex(curDate.getDay());
-        setAllData(tempAllData);
+          setSelectedBarIndex(curDate.getDay());
+          setTodayIndex(curDate.getDay());
+          setAllData(tempAllData);
 
-        // Process tempAllData
-        var todaysData: { [key: string]: number } =
-          tempAllData[curDate.getDay().toString()] || {};
+          // Process tempAllData
+          var todaysData: { [key: string]: number } =
+            tempAllData[curDate.getDay().toString()] || {};
 
-        var sortedData = Object.entries(todaysData).sort(
-          (a, b) => b[1] - a[1]
-        );
-        todaysData = Object.fromEntries(sortedData);
-        setProcessedData(todaysData);
-        
-        console.log("today's data: ");
-        console.log(todaysData);
+          var sortedData = Object.entries(todaysData).sort(
+            (a, b) => b[1] - a[1]
+          );
+          todaysData = Object.fromEntries(sortedData);
+          setProcessedData(todaysData);
 
-        // Process "limitify_blocked"
-        if (blockedResult) {
-          setBlockedData(blockedResult);
+          console.log("today's data: ");
+          console.log(todaysData);
+
+          // Process "limitify_blocked"
+          if (blockedResult) {
+            setBlockedData(blockedResult);
+          }
+
+          var weekData = [];
+          weekData.push(tempAllData["0"]?.total || 0);
+          weekData.push(tempAllData["1"]?.total || 0);
+          weekData.push(tempAllData["2"]?.total || 0);
+          weekData.push(tempAllData["3"]?.total || 0);
+          weekData.push(tempAllData["4"]?.total || 0);
+          weekData.push(tempAllData["5"]?.total || 0);
+          weekData.push(tempAllData["6"]?.total || 0);
+
+          setWeekData(weekData);
+
+          setLoading(false);
         }
-
-        var weekData = [];
-        weekData.push(tempAllData["0"]?.total || 0);
-        weekData.push(tempAllData["1"]?.total || 0);
-        weekData.push(tempAllData["2"]?.total || 0);
-        weekData.push(tempAllData["3"]?.total || 0);
-        weekData.push(tempAllData["4"]?.total || 0);
-        weekData.push(tempAllData["5"]?.total || 0);
-        weekData.push(tempAllData["6"]?.total || 0);
-
-        setWeekData(weekData);
-      
-
-        setLoading(false);
-      });
+      );
     }
   }, []);
 
@@ -152,31 +152,30 @@ export default function Home() {
 
   return (
     <body
-      className={`bg-white dark:bg-[#272624] min-h-screen items-center justify-between ${inter.className}`}
+      className={`bg-white dark:bg-[#272624] min-h-screen ${inter.className}`}
     >
-      <div className="px-3 py-3 place-items-center">
+      <div className="px-3 py-3">
         {loading ? (
           <h2 className="mt-4 text-4xl font-extrabold text-black dark:text-white">
             Loading...
           </h2>
         ) : null}
-        {/* <h2 className="mt-4 text-xl font-extrabold text-white">Screen time for the week</h2> */}
 
-        <h2 className="ml-2 mt-4 text-lg text-black dark:text-white">Usage</h2>
-        <h1 className="ml-2 mt-2 text-4xl text-black dark:text-white">
-          {
-            processedData["total"] == undefined
+        <div className="flex flex-col items-start">
+          <h2 className="ml-2 mt-4 text-lg text-black dark:text-white">Usage</h2>
+          <h1 className="ml-2 mt-2 text-4xl text-black dark:text-white">
+            {processedData["total"] == undefined
               ? "no usage recorded"
               : Math.ceil(processedData["total"]) > 3600
               ? Math.floor(Math.ceil(processedData["total"]) / 3600) +
                 "h " +
                 Math.floor((Math.ceil(processedData["total"]) % 3600) / 60) +
-                "min" // If time is more than an hour
+                "min"
               : Math.ceil(processedData["total"]) > 60
-              ? Math.floor(Math.ceil(processedData["total"]) / 60) + "min" // If time is more than 1 minute
-              : Math.floor(Math.ceil(processedData["total"])) + "s" // If time is less than one minute
-          }
-        </h1>
+              ? Math.floor(Math.ceil(processedData["total"]) / 60) + "min"
+              : Math.floor(Math.ceil(processedData["total"])) + "s"}
+          </h1>
+        </div>
 
         <WeekGraph
           data={weekData}
@@ -185,83 +184,73 @@ export default function Home() {
         />
 
         <div className="my-4 flex flex-col">
-          <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
-              <div className="overflow-hidden">
-                <table className="min-w-full text-left text-sm font-light">
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm font-light text-left">
                   <thead className="border-b font-medium border-neutral-500">
                     <tr>
                       <th scope="col" className="px-6 py-4 text-black dark:text-white">
                         Website
                       </th>
-                      <th scope="col" className="px-6 py-4 text-black dark:text-white">
+                      <th scope="col" className="px-6 py-4 text-black dark:text-white whitespace-nowrap w-24">
                         Time
                       </th>
-                      {selectedBarIndex == todayIndex ? (
-                        <th scope="col" className="px-6 py-4 text-black dark:text-white">
+                      {selectedBarIndex == todayIndex && (
+                        <th scope="col" className="px-6 py-4 text-black dark:text-white whitespace-nowrap w-24">
                           Block
                         </th>
-                      ) : null}
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     {Object.keys(processedData).map(
                       (key, idx) =>
-                        key != "total" && //(
-                        key != "" && (
-                          // <tr className="border-b border-neutral-500">
-                          <tr className={idx % 2 == 0 ? "bg-[#f4f5f5] dark:bg-[#31302e]" : ""}>
-                            <td className="whitespace-nowrap px-6 py-4 font-medium">
+                        key !== "total" && key !== "" && (
+                          <tr
+                            key={key}
+                            className={idx % 2 === 0 ? "bg-[#f4f5f5] dark:bg-[#31302e]" : ""}
+                          >
+                            <td className="px-6 py-4 font-medium">
                               <div className="flex items-center">
-                                <Image
-                                  src={
-                                    (urlFavicons[key] == undefined ?
-                                    ("https://www.google.com/s2/favicons?domain=" +
-                                    key +
-                                    "&sz=32") :
-                                    urlFavicons[key]
-                                    )
-                                  }
-                                  // src={"https://api.faviconkit.com/" + key + "/32"}
-                                  width={32}
-                                  height={32}
-                                  onError={(e) => {
-                                    e.currentTarget.onerror = null;
-                                    e.currentTarget.src =
-                                      "https://www.google.com/s2/favicons?domain=example.com&sz=32";
-                                  }}
-                                  alt=""
-                                />
-                                <div className="ml-2 text-black dark:text-white">{key}</div>
+                                <div className="flex-shrink-0">
+                                  <Image
+                                    src={
+                                      urlFavicons[key] ?? 
+                                      `https://www.google.com/s2/favicons?domain=${key}&sz=32`
+                                    }
+                                    width={32}
+                                    height={32}
+                                    onError={(e) => {
+                                      e.currentTarget.onerror = null;
+                                      e.currentTarget.src =
+                                        "https://www.google.com/s2/favicons?domain=example.com&sz=32";
+                                    }}
+                                    alt=""
+                                    className="min-w-[32px]"
+                                  />
+                                </div>
+                                <div
+                                  className="ml-2 text-black dark:text-white truncate max-w-[200px] hover:text-clip hover:overflow-visible"
+                                >
+                                  {key}
+                                </div>
                               </div>
                             </td>
-                            <td className="whitespace-nowrap px-6 py-4 text-black dark:text-white">
-                              {
-                                Math.ceil(processedData[key]) > 3600
-                                  ? Math.floor(
-                                      Math.ceil(processedData[key]) / 3600
-                                    ) +
-                                    "h " +
-                                    Math.floor(
-                                      (Math.ceil(processedData[key]) % 3600) /
-                                        60
-                                    ) +
-                                    "min" // If time is more than an hour
-                                  : Math.ceil(processedData[key]) > 60
-                                  ? Math.floor(
-                                      Math.ceil(processedData[key]) / 60
-                                    ) + "min" // If time is more than 1 minute
-                                  : Math.floor(Math.ceil(processedData[key])) +
-                                    "s" // If time is less than one minute
-                              }
+                            <td className="px-6 py-4 whitespace-nowrap text-black dark:text-white">
+                              {Math.ceil(processedData[key]) > 3600
+                                ? `${Math.floor(Math.ceil(processedData[key]) / 3600)}h ${Math.floor(
+                                    (Math.ceil(processedData[key]) % 3600) / 60
+                                  )}min`
+                                : Math.ceil(processedData[key]) > 60
+                                ? `${Math.floor(Math.ceil(processedData[key]) / 60)}min`
+                                : `${Math.floor(Math.ceil(processedData[key]))}s`}
                             </td>
-
-                            {selectedBarIndex == todayIndex ? (
-                              <td className="whitespace-nowrap px-6 py-4">
+                            {selectedBarIndex == todayIndex && (
+                              <td className="px-6 py-4 whitespace-nowrap">
                                 <label className="relative inline-flex items-center cursor-pointer">
                                   <input
                                     type="checkbox"
-                                    value=""
                                     className="sr-only peer"
                                     checked={blockedData[key]}
                                     onChange={handleToggle(key)}
@@ -269,7 +258,7 @@ export default function Home() {
                                   <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#3b82f7]"></div>
                                 </label>
                               </td>
-                            ) : null}
+                            )}
                           </tr>
                         )
                     )}

@@ -1,6 +1,5 @@
 const DEBUG = true;
-
-const chromeurls = [
+const CHROME_URLS = [
   "chrome://about",
   "chrome://accessibility",
   "chrome://app-service-internals",
@@ -79,6 +78,21 @@ const chromeurls = [
   "chrome://whats-new",
   "chrome://internals/session-service",
 ];
+
+// Constants for common states/values
+const TAB_STATES = {
+  IDLE: 'idle',
+  ACTIVE: 'active',
+  LOCKED: 'locked'
+};
+
+const EMPTY_TAB = {
+  id: null,
+  url: 'newtab',
+  title: null,
+  startTime: null,
+  endTime: null
+};
 
 const storage = {
   add(value) {
@@ -311,161 +325,138 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
+// Helper functions
+function log(message) {
+  if (DEBUG) console.log(message);
+}
+
 function getCurrentTab() {
   return new Promise((resolve, reject) => {
-    let queryOptions = { active: true, lastFocusedWindow: true };
+    const queryOptions = { active: true, lastFocusedWindow: true };
     chrome.tabs.query(queryOptions, ([tab]) => {
-      if (tab) {
-        resolve(tab);
-      } else {
-        reject(new Error("Unable to retrieve the current tab."));
-      }
+      tab ? resolve(tab) : reject(new Error('Unable to retrieve current tab'));
     });
   });
 }
 
-chrome.windows.onFocusChanged.addListener((windowId) => {
-  if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    // Set end time of the current tab in storage to right now
-    DEBUG ? console.log("WINDOW_LOST_FOCUS: left browser window(s)") : null;
-    endCurTab();
-  } else {
-    DEBUG ? console.log("SWITCHED_WINDOWS: changed browser windows") : null;
-    getCurrentTab()
-      .then((tab) => {
-        changedTo(tab.id, tab);
-      })
-      .catch((error) => {
-        console.log("ERROR: Failed to get current tab:", error);
-      });
+function getUrlHostname(tab) {
+  try {
+    const url = tab.url || 'chrome://newtab/';
+    if (tab.url?.startsWith('chrome-extension://') || tab.url?.startsWith('file:')) {
+      return 'newtab';
+    }
+    return new URL(url).hostname;
+  } catch (e) {
+    return 'newtab';
   }
-});
+}
 
-function changedTo(tabId, tab) {
-  var storageCurTabReal = {};
-  var changeurl = new URL(tab.url === "" ? "chrome://newtab/" : tab.url);
-  if (
-    tab.url.length >= 19 &&
-    tab.url.substring(0, 19) == "chrome-extension://"
-  ) {
-    DEBUG ? console.log("changed to extension page") : null;
-    changeurl = new URL("chrome://newtab/");
+async function saveTabSession(tab) {
+  if (!tab?.startTime) return;
+  
+  tab.endTime = Date.now();
+  try {
+    await storage.add(tab);
+  } catch (error) {
+    log(`Failed to save tab session: ${error}`);
   }
+}
 
-  if (tab.url.length >= 5 && tab.url.substring(0, 5) == "file:") {
-    DEBUG ? console.log("changed to file page") : null;
-    changeurl = new URL("chrome://newtab/");
-  }
-
-  const timenow = new Date();
-
-  storage
-    .get_local("limitify_curtab")
-    .then((result) => {
-      storageCurTabReal = result;
-      if (!chromeurls.includes("chrome://" + storageCurTabReal.url)) {
-        DEBUG
-          ? console.log(
-              "left " +
-                storageCurTabReal.url +
-                " at time: " +
-                timenow.toLocaleTimeString()
-            )
-          : null;
-        storageCurTabReal.endTime = Date.now();
-        return storage.add(storageCurTabReal);
-      }
-    })
-    .then(() => {
-      DEBUG
-        ? console.log(
-            "changed to " +
-              changeurl.hostname +
-              " at time: " +
-              timenow.toLocaleTimeString()
-          )
-        : null;
-
-      if (
-        chromeurls.includes("chrome://" + changeurl.hostname) &&
-        chromeurls.includes("chrome://" + storageCurTabReal.url)
-      ) {
-        return;
-      }
-
-      storageCurTabReal = {
-        id: tabId,
-        url: changeurl.hostname,
-        title: tab.title,
-        startTime: Date.now(),
-        endTime: null,
-      };
-      return storage.set_local("limitify_curtab", storageCurTabReal);
-    })
-    .catch((error) => {
-      console.log("ERROR: Failed to update tab data:", error);
-    });
-
-  if (chromeurls.includes("chrome://" + changeurl.hostname)) {
+async function updateCurrentTab(tabId, tab) {
+  if (!tab?.url) {
+    log('Invalid tab data');
     return;
   }
 
-  storage.get("limitify_blocked").then((result) => {
-    if (result[changeurl.hostname]) {
-      chrome.tabs.get(tabId, (tab) => {
-        setTimeout(() => {
-          try {
-            chrome.tabs.remove(tabId);
-          } catch (e) {
-            DEBUG ? console.log("error removing tab: " + e) : null;
-          }
-        }, 1000);
-      });
-    }
-  });
-}
+  const currentTab = await storage.get_local('limitify_curtab');
+  const hostname = getUrlHostname(tab);
 
-function endCurTab() {
-  var tab = {
-    id: -1,
-    url: "chrome://newtab/",
-    title: null,
+  // Save previous tab session
+  if (currentTab?.startTime && !CHROME_URLS.includes(`chrome://${currentTab.url}`)) {
+    await saveTabSession(currentTab);
+  }
+
+  // Don't track chrome URLs
+  if (CHROME_URLS.includes(`chrome://${hostname}`)) {
+    await storage.set_local('limitify_curtab', EMPTY_TAB);
+    return;
+  }
+
+  // Set up tracking for new tab
+  const newTabData = {
+    id: tabId,
+    url: hostname,
+    title: tab.title,
+    startTime: Date.now(),
+    endTime: null
   };
-  changedTo(tab.id, tab);
+
+  await storage.set_local('limitify_curtab', newTabData);
+
+  // Check if site should be blocked
+  const blockedSites = await storage.get('limitify_blocked');
+  if (blockedSites[hostname]) {
+    setTimeout(() => {
+      try {
+        chrome.tabs.remove(tabId);
+      } catch (e) {
+        log(`Error removing blocked tab: ${e}`);
+      }
+    }, 1000);
+  }
 }
 
-chrome.idle.onStateChanged.addListener((newState) => {
-  DEBUG ? console.log("CHANGED STATE TO: " + newState) : null;
-  if (newState === "idle") {
-    DEBUG ? console.log("IDLE: gone into idling") : null;
-    endCurTab();
-  } else if (newState === "active") {
-    DEBUG ? console.log("ACTIVE: back from being idle") : null;
-    getCurrentTab()
-      .then((tab) => {
-        changedTo(tab.id, tab);
-      })
-      .catch((error) => {
-        console.log("ERROR: Failed to get current tab:", error);
-      });
-  } else if (newState === "locked") {
-    DEBUG ? console.log("LOCKED: gone into locked") : null;
-    endCurTab();
+// Event Listeners
+chrome.windows.onFocusChanged.addListener(async (windowId) => {
+  const currentTab = await storage.get_local('limitify_curtab');
+
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    log('WINDOW_LOST_FOCUS: left browser window(s)');
+    if (currentTab?.startTime) {
+      await saveTabSession(currentTab);
+      await storage.set_local('limitify_curtab', EMPTY_TAB);
+    }
+  } else {
+    log('SWITCHED_WINDOWS: changed browser windows');
+    try {
+      const tab = await getCurrentTab();
+      await updateCurrentTab(tab.id, tab);
+    } catch (error) {
+      log(`Failed to handle window focus: ${error}`);
+    }
   }
 });
 
-// used when the user changes url in the same tab
+chrome.idle.onStateChanged.addListener(async (newState) => {
+  log(`CHANGED STATE TO: ${newState}`);
+  
+  const currentTab = await storage.get_local('limitify_curtab');
+  if (!currentTab?.startTime) return;
+
+  await saveTabSession(currentTab);
+
+  if (newState === TAB_STATES.IDLE || newState === TAB_STATES.LOCKED) {
+    log(`${newState.toUpperCase()}: gone into ${newState}`);
+    await storage.set_local('limitify_curtab', EMPTY_TAB);
+  } else if (newState === TAB_STATES.ACTIVE) {
+    log(`ACTIVE: back from being ${newState}`);
+    try {
+      const tab = await getCurrentTab();
+      await updateCurrentTab(tab.id, tab);
+    } catch (error) {
+      log(`Failed to handle active state: ${error}`);
+    }
+  }
+});
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete") {
-    // DEBUG ? console.log("UPDATED: changed url in same tab") : null;
-    changedTo(tabId, tab);
+  if (changeInfo.status === 'complete') {
+    updateCurrentTab(tabId, tab);
   }
 });
 
-// used when the user changes tab (includes creating a new tab)
 chrome.tabs.onActivated.addListener((activeInfo) => {
-  // DEBUG ? console.log("CHANGED: changed tabs") : null;
   chrome.tabs.get(activeInfo.tabId, (tab) => {
-    changedTo(tab.id, tab);
+    updateCurrentTab(tab.id, tab);
   });
 });
