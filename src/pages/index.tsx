@@ -12,6 +12,9 @@ type ScreenTime = {
   };
 };
 
+type SortField = 'website' | 'time' | 'blocked';
+type SortDirection = 'asc' | 'desc';
+
 const urlFavicons: Record<string, string> = {
   "mail.google.com": "https://i.imgur.com/RONfcuW.png",
   "calendar.google.com": "https://i.imgur.com/OoAyUL7.png",
@@ -39,6 +42,8 @@ export default function Home() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState<{ [key: string]: number }>({});
+  const [sortField, setSortField] = useState<SortField>('time');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const handleBarClick = (index: number) => {
     setSelectedBarIndex(index);
@@ -197,6 +202,43 @@ export default function Home() {
     setSearchOpen(false);
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // If clicking the same field, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // If clicking a new field, set it with default direction
+      setSortField(field);
+      setSortDirection(field === 'time' ? 'desc' : 'asc');
+    }
+  };
+
+  const getSortedData = () => {
+    const dataEntries = Object.entries(filteredData)
+      .filter(([key]) => key !== "total" && key !== "");
+
+    return dataEntries.sort(([keyA, valueA], [keyB, valueB]) => {
+      if (sortField === 'website') {
+        return sortDirection === 'asc' 
+          ? keyA.localeCompare(keyB)
+          : keyB.localeCompare(keyA);
+      }
+      if (sortField === 'time') {
+        return sortDirection === 'asc'
+          ? valueA - valueB
+          : valueB - valueA;
+      }
+      if (sortField === 'blocked') {
+        const blockedA = blockedData[keyA] || false;
+        const blockedB = blockedData[keyB] || false;
+        return sortDirection === 'asc'
+          ? Number(blockedA) - Number(blockedB)
+          : Number(blockedB) - Number(blockedA);
+      }
+      return 0;
+    });
+  };
+
   return (
     <body
       className={`bg-white dark:bg-[#272624] min-h-screen ${inter.className}`}
@@ -268,76 +310,107 @@ export default function Home() {
                   <thead className="border-b font-medium border-neutral-500">
                     <tr>
                       <th scope="col" className="px-6 py-4 text-black dark:text-white">
-                        Website
+                        <div className="flex items-center">
+                          <button
+                            onClick={() => handleSort('website')}
+                            className="hover:text-neutral-600 dark:hover:text-neutral-400"
+                          >
+                            Website
+                            {sortField === 'website' && (
+                              <span className="ml-1 inline-block">
+                                {sortDirection === 'asc' ? '↑' : '↓'}
+                              </span>
+                            )}
+                          </button>
+                        </div>
                       </th>
                       <th scope="col" className="px-6 py-4 text-black dark:text-white whitespace-nowrap w-24">
-                        Time
+                        <button
+                          onClick={() => handleSort('time')}
+                          className="hover:text-neutral-600 dark:hover:text-neutral-400"
+                        >
+                          Time
+                          {sortField === 'time' && (
+                            <span className="ml-1 inline-block">
+                              {sortDirection === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </button>
                       </th>
                       {selectedBarIndex == todayIndex && (
                         <th scope="col" className="px-6 py-4 text-black dark:text-white whitespace-nowrap w-24">
-                          Block
+                          <button
+                            onClick={() => handleSort('blocked')}
+                            className="hover:text-neutral-600 dark:hover:text-neutral-400"
+                          >
+                            Block
+                            {sortField === 'blocked' && (
+                              <span className="ml-1 inline-block">
+                                {sortDirection === 'asc' ? '↑' : '↓'}
+                              </span>
+                            )}
+                          </button>
                         </th>
                       )}
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.keys(filteredData).map(
-                      (key, idx) =>
-                        key !== "total" && key !== "" && (
-                          <tr
-                            key={key}
-                            className={idx % 2 === 0 ? "bg-[#f4f5f5] dark:bg-[#31302e]" : ""}
-                          >
-                            <td className="px-6 py-4 font-medium">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                  <Image
-                                    src={
-                                      urlFavicons[key] ?? 
-                                      `https://www.google.com/s2/favicons?domain=${key}&sz=32`
-                                    }
-                                    width={32}
-                                    height={32}
-                                    onError={(e) => {
-                                      e.currentTarget.onerror = null;
-                                      e.currentTarget.src =
-                                        "https://www.google.com/s2/favicons?domain=example.com&sz=32";
-                                    }}
-                                    alt=""
-                                    className="min-w-[32px]"
-                                  />
-                                </div>
-                                <div
-                                  className="ml-2 text-black dark:text-white truncate max-w-[200px] hover:text-clip hover:overflow-visible"
-                                >
-                                  {key}
-                                </div>
+                    {getSortedData().map(
+                      ([key, value], idx) => (
+                        <tr
+                          key={key}
+                          className={idx % 2 === 0 ? "bg-[#f4f5f5] dark:bg-[#31302e]" : ""}
+                        >
+                          <td className="px-6 py-4 font-medium">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0">
+                                <Image
+                                  src={
+                                    urlFavicons[key] ?? 
+                                    `https://www.google.com/s2/favicons?domain=${key}&sz=32`
+                                  }
+                                  width={32}
+                                  height={32}
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src =
+                                      "https://www.google.com/s2/favicons?domain=example.com&sz=32";
+                                  }}
+                                  alt=""
+                                  className="min-w-[32px]"
+                                />
                               </div>
+                              <div
+                                className="ml-2 text-black dark:text-white truncate max-w-[200px] hover:text-clip hover:overflow-visible"
+                              >
+                                {key}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-black dark:text-white">
+                            {Math.ceil(value) > 3600
+                              ? `${Math.floor(Math.ceil(value) / 3600)}h ${Math.floor(
+                                  (Math.ceil(value) % 3600) / 60
+                                )}min`
+                              : Math.ceil(value) > 60
+                              ? `${Math.floor(Math.ceil(value) / 60)}min`
+                              : `${Math.floor(Math.ceil(value))}s`}
+                          </td>
+                          {selectedBarIndex == todayIndex && (
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  className="sr-only peer"
+                                  checked={blockedData[key]}
+                                  onChange={handleToggle(key)}
+                                />
+                                <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#3b82f7]"></div>
+                              </label>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-black dark:text-white">
-                              {Math.ceil(filteredData[key]) > 3600
-                                ? `${Math.floor(Math.ceil(filteredData[key]) / 3600)}h ${Math.floor(
-                                    (Math.ceil(filteredData[key]) % 3600) / 60
-                                  )}min`
-                                : Math.ceil(filteredData[key]) > 60
-                                ? `${Math.floor(Math.ceil(filteredData[key]) / 60)}min`
-                                : `${Math.floor(Math.ceil(filteredData[key]))}s`}
-                            </td>
-                            {selectedBarIndex == todayIndex && (
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={blockedData[key]}
-                                    onChange={handleToggle(key)}
-                                  />
-                                  <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#3b82f7]"></div>
-                                </label>
-                              </td>
-                            )}
-                          </tr>
-                        )
+                          )}
+                        </tr>
+                      )
                     )}
                   </tbody>
                 </table>
