@@ -46,29 +46,66 @@ const WeekGraph: React.FC<WeekGraphProps> = ({
       .domain([0, yMax])
       .range([chartHeight, margin.top]);
 
-    const xAxis = d3.axisBottom(xScale);
+    const xAxis = d3.axisBottom(xScale)
+      .tickSize(5)  // Show tick lines with 5px length
+      .tickPadding(8);  // Keep padding between text and ticks
 
     const yAxis = d3
       .axisRight(yScale)
       .ticks(2)
+      .tickSize(5)  // Show tick lines with 5px length
       .tickFormat((d) => {
         if (yMax < 60) {
-          return `${d}s`; // Format as seconds
+          return `${d}s`;
         } else if (yMax < 3600) {
-          return `${Math.round((Number(d) / 60) * 10) / 10}m`; // Format as minutes
+          return `${Math.round((Number(d) / 60) * 10) / 10}m`;
         } else {
-          return `${Math.round((Number(d) / 3600) * 10) / 10}h`; // Format as hours
+          return `${Math.round((Number(d) / 3600) * 10) / 10}h`;
         }
       });
 
     svg
       .select<SVGGElement>(".x-axis")
       .attr("transform", `translate(0, ${chartHeight})`)
-      .call(xAxis);
+      .call(xAxis)
+      .attr("color", "currentColor")
+      .call(g => {
+        // Style the domain (main axis line)
+        g.select(".domain")
+          .attr("stroke", "currentColor")
+          .attr("stroke-width", 1);
+        
+        // Style the tick lines
+        g.selectAll(".tick line")
+          .attr("stroke", "currentColor")
+          .attr("stroke-width", 1);
+        
+        // Style the tick text
+        g.selectAll(".tick text")
+          .attr("fill", "currentColor");
+      });
+
     svg
       .select<SVGGElement>(".y-axis")
       .attr("transform", `translate(${width - margin.right}, 0)`)
-      .call(yAxis);
+      .call(yAxis)
+      .attr("color", "currentColor")
+      .call(g => {
+        // Style the domain (main axis line)
+        g.select(".domain")
+          .attr("stroke", "currentColor")
+          .attr("stroke-width", 1);
+        
+        // Style the tick lines
+        g.selectAll(".tick line")
+          .attr("stroke", "currentColor")
+          .attr("stroke-width", 1);
+        
+        // Style the tick text
+        g.selectAll(".tick text")
+          .attr("fill", "currentColor");
+      });
+
     svg
       .selectAll(".bar")
       .data(data)
@@ -94,7 +131,12 @@ const WeekGraph: React.FC<WeekGraphProps> = ({
   }, [data, onBarClick, selectedBar]);
 
   return (
-    <svg ref={svgRef} width={width} height={height}>
+    <svg 
+      ref={svgRef} 
+      width={width} 
+      height={height}
+      className="text-black dark:text-white" // Add this class for dark mode support
+    >
       <g className="x-axis" />
       <g className="y-axis" />
     </svg>
