@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, KeyboardEvent } from "react";
 
 import WeekGraph from "../components/weekgraph";
 
@@ -36,6 +36,9 @@ export default function Home() {
   const [blockedData, setBlockedData] = useState(
     {} as { [key: string]: boolean }
   );
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredData, setFilteredData] = useState<{ [key: string]: number }>({});
 
   const handleBarClick = (index: number) => {
     setSelectedBarIndex(index);
@@ -142,13 +145,57 @@ export default function Home() {
     if (typeof window !== "undefined" && allData) {
       setLoading(true);
       var daydata: { [key: string]: number } =
-        allData[selectedBarIndex.toString()] || {}; // get the data for today
+        allData[selectedBarIndex.toString()] || {};
       var sortedData = Object.entries(daydata).sort((a, b) => b[1] - a[1]);
       daydata = Object.fromEntries(sortedData);
       setProcessedData(daydata);
+      setFilteredData(daydata);
       setLoading(false);
     }
   }, [selectedBarIndex]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown as any);
+    return () => document.removeEventListener('keydown', handleKeyDown as any);
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery) {
+      const filtered = Object.entries(processedData)
+        .filter(([key]) => 
+          key.toLowerCase().includes(searchQuery.toLowerCase()) && 
+          key !== "total" && 
+          key !== ""
+        )
+        .reduce((acc, [key, value]) => ({...acc, [key]: value}), {});
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(processedData);
+    }
+  }, [searchQuery, processedData]);
+
+  useEffect(() => {
+    if (searchOpen) {
+      // Find and focus the search input when searchOpen becomes true
+      const searchInput = document.getElementById('website-search');
+      searchInput?.focus();
+    }
+  }, [searchOpen]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleBlur = () => {
+    setSearchOpen(false);
+  };
 
   return (
     <body
@@ -183,7 +230,37 @@ export default function Home() {
           onBarClick={handleBarClick}
         />
 
-        <div className="my-4 flex flex-col">
+        <div className="relative mb-4">
+          <div className="flex items-center">
+            <input
+              id="website-search"
+              type="text"
+              placeholder="Search websites... (⌘K)"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => setSearchOpen(true)}
+              onBlur={handleBlur}
+              className={`w-full px-4 py-2 text-sm text-black dark:text-white 
+                bg-gray-100 dark:bg-[#31302e] rounded-lg 
+                focus:outline-none
+                transition-all duration-200 ease-in-out
+                ${searchOpen ? 
+                  'ring-1 ring-neutral-400 dark:ring-neutral-600 shadow-md bg-white dark:bg-[#3b3a38]' : 
+                  'ring-0 shadow-none'
+                }`}
+            />
+            <div className={`absolute right-3 top-2.5 text-sm 
+              transition-colors duration-200 ease-in-out
+              ${searchOpen ? 
+                'text-neutral-600 dark:text-neutral-400' : 
+                'text-gray-400'
+              }`}>
+              {searchOpen ? '⌘K' : '⌘K'}
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-4 flex flex-col">
           <div className="sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
               <div className="overflow-x-auto">
@@ -204,7 +281,7 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.keys(processedData).map(
+                    {Object.keys(filteredData).map(
                       (key, idx) =>
                         key !== "total" && key !== "" && (
                           <tr
@@ -238,13 +315,13 @@ export default function Home() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-black dark:text-white">
-                              {Math.ceil(processedData[key]) > 3600
-                                ? `${Math.floor(Math.ceil(processedData[key]) / 3600)}h ${Math.floor(
-                                    (Math.ceil(processedData[key]) % 3600) / 60
+                              {Math.ceil(filteredData[key]) > 3600
+                                ? `${Math.floor(Math.ceil(filteredData[key]) / 3600)}h ${Math.floor(
+                                    (Math.ceil(filteredData[key]) % 3600) / 60
                                   )}min`
-                                : Math.ceil(processedData[key]) > 60
-                                ? `${Math.floor(Math.ceil(processedData[key]) / 60)}min`
-                                : `${Math.floor(Math.ceil(processedData[key]))}s`}
+                                : Math.ceil(filteredData[key]) > 60
+                                ? `${Math.floor(Math.ceil(filteredData[key]) / 60)}min`
+                                : `${Math.floor(Math.ceil(filteredData[key]))}s`}
                             </td>
                             {selectedBarIndex == todayIndex && (
                               <td className="px-6 py-4 whitespace-nowrap">
