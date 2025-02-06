@@ -1,14 +1,14 @@
 ## ScreenTime
-[![chrome store logo](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png)](https://chrome.google.com/webstore/detail/screentime/gachmghamoanlighmiebamagipmhdphl)
+[![chrome store logo](https://developer.chrome.com/static/docs/webstore/branding/image/UV4C4ybeBTsZt43U4xis.png)](https://chrome.google.com/webstore/detail/screentime/gachmghamoanlighmiebamagipmhdphl)
 
-Introducing the ScreenTime Chrome Extension
+ScreenTime for Chrome tracks your daily web activity and helps you manage distractions. The extension shows your browsing patterns through simple stats and graphs, and lets you block time-wasting sites when needed.
 
-ScreenTime is a powerful Chrome extension designed to help you stay focused and productive by tracking your web usage and providing insights into your online habits. Inspired by the popular iOS Screen Time feature, this intuitive and user-friendly extension keeps you accountable for your time spent on websites, allowing you to take control of your digital life.
+Features:
+- See your daily website usage
+- View weekly activity trends
+- Block distracting websites
 
-Key Features:
-- Daily Usage History: Tracks your web usage on a daily basis.
-- Weekly Graph: Visualizes your web usage trends over a week.
-- Website Blocker: Allows you to block specific websites to eliminate distractions.
+That's it - a simple tool to help you browse more mindfully.
 
 <p align="center">
     <img src="./public/chromestore/poster1.png" alt="poster 1" width="650"/>
