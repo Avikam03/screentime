@@ -460,3 +460,8 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
     updateCurrentTab(tab.id, tab);
   });
 });
+
+chrome.runtime.setUninstallURL(
+  "https://forms.gle/3f8MTHYmVVpL9jCK9"
+)
+
