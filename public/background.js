@@ -111,6 +111,17 @@ const CHROME_URLS = [
   "about:sessionrestore",
   "about:support",
   "moz-extension:",
+  // Firefox URLs
+  "about:addons",
+  "about:config",
+  "about:downloads",
+  "about:home",
+  "about:newtab",
+  "about:preferences",
+  "about:reader",
+  "about:sessionrestore",
+  "about:support",
+  "moz-extension:",
 ];
 
 // Constants for common states/values
@@ -401,6 +412,7 @@ function getCurrentTab() {
   return new Promise((resolve, reject) => {
     const queryOptions = { active: true, lastFocusedWindow: true };
     api.tabs.query(queryOptions, ([tab]) => {
+    api.tabs.query(queryOptions, ([tab]) => {
       tab ? resolve(tab) : reject(new Error('Unable to retrieve current tab'));
     });
   });
@@ -409,6 +421,9 @@ function getCurrentTab() {
 function getUrlHostname(tab) {
   try {
     const url = tab.url || 'chrome://newtab/';
+    if (tab.url?.startsWith('chrome-extension://') || 
+        tab.url?.startsWith('moz-extension://') || 
+        tab.url?.startsWith('file:')) {
     if (tab.url?.startsWith('chrome-extension://') || 
         tab.url?.startsWith('moz-extension://') || 
         tab.url?.startsWith('file:')) {
@@ -434,6 +449,8 @@ async function saveTabSession(tab) {
 async function updateCurrentTab(tabId, tab) {
   log(`updateCurrentTab called with tabId: ${tabId}, url: ${tab?.url}`);
   
+  log(`updateCurrentTab called with tabId: ${tabId}, url: ${tab?.url}`);
+  
   if (!tab?.url) {
     log('Invalid tab data');
     return;
@@ -444,12 +461,18 @@ async function updateCurrentTab(tabId, tab) {
   
   log(`Current tab: ${JSON.stringify(currentTab)}`);
   log(`New hostname: ${hostname}`);
+  
+  log(`Current tab: ${JSON.stringify(currentTab)}`);
+  log(`New hostname: ${hostname}`);
 
   // Save previous tab session
+  if (currentTab?.startTime && !CHROME_URLS.some(url => currentTab.url?.includes(url))) {
   if (currentTab?.startTime && !CHROME_URLS.some(url => currentTab.url?.includes(url))) {
     await saveTabSession(currentTab);
   }
 
+  // Don't track chrome/firefox URLs
+  if (CHROME_URLS.some(url => hostname?.includes(url.replace('chrome://', '').replace('about:', '')))) {
   // Don't track chrome/firefox URLs
   if (CHROME_URLS.some(url => hostname?.includes(url.replace('chrome://', '').replace('about:', '')))) {
     await storage.set_local('limitify_curtab', EMPTY_TAB);
@@ -508,6 +531,13 @@ if (api.idle && api.idle.onStateChanged) {
     
     const currentTab = await storage.get_local('limitify_curtab');
     if (!currentTab?.startTime) return;
+// Firefox doesn't have idle API in the same way, so wrap it
+if (api.idle && api.idle.onStateChanged) {
+  api.idle.onStateChanged.addListener(async (newState) => {
+    log(`CHANGED STATE TO: ${newState}`);
+    
+    const currentTab = await storage.get_local('limitify_curtab');
+    if (!currentTab?.startTime) return;
 
     await saveTabSession(currentTab);
 
@@ -548,6 +578,10 @@ api.tabs.onActivated.addListener((activeInfo) => {
   });
 });
 
+// Firefox doesn't support setUninstallURL
+if (api.runtime.setUninstallURL) {
+  api.runtime.setUninstallURL("https://forms.gle/3f8MTHYmVVpL9jCK9");
+}
 // Firefox doesn't support setUninstallURL
 if (api.runtime.setUninstallURL) {
   api.runtime.setUninstallURL("https://forms.gle/3f8MTHYmVVpL9jCK9");
