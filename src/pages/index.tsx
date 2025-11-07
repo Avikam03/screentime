@@ -56,11 +56,42 @@ export default function Home() {
       const newBlockedData = { ...blockedData };
       newBlockedData[website] = !newBlockedData[website];
       setBlockedData(newBlockedData);
+      console.log("Clicked on toggle. New blocked data:", newBlockedData)
 
       import("../../public/storage.js").then((storage) =>
         Promise.all([
           storage.default.set("limitify_blocked", newBlockedData),
-        ]).then()
+        ]).then(() => {
+            // If we just blocked this site, check if we're currently on it
+            if (newBlockedData[website] && typeof window !== 'undefined') {
+                // Get the browser API (only available in browser context)
+                const api = typeof (window as any).browser !== 'undefined' 
+                    ? (window as any).browser 
+                    : (window as any).chrome;
+                
+                if (api && api.tabs) {
+                    // Get the current active tab
+                    api.tabs.query({ active: true, currentWindow: true }, (tabs: any[]) => {
+                        if (tabs && tabs[0]) {
+                            const currentTab = tabs[0];
+                            try {
+                                const currentUrl = new URL(currentTab.url || '');
+                                const currentHostname = currentUrl.hostname;
+                                
+                                // If current tab matches the blocked website, close it
+                                if (currentHostname === website) {
+                                    console.log(`Closing tab for blocked site: ${website} with tab id ${currentTab.id}`);
+                                    // close after a sec
+                                    setTimeout(() => api.tabs.remove(currentTab.id), 1000);
+                                }
+                            } catch (e) {
+                                console.log("Could not parse current tab URL:", e);
+                            }
+                        }
+                    });
+                }
+            }
+        })
       );
     };
 

@@ -1,6 +1,6 @@
 {
     "name": "ScreenTime",
-    "description": "tldr; browser screen time plugin",
+    "description": "Track your browsing time across websites. Requires tab access to monitor website usage for time tracking only - no data is modified or sent anywhere.",
     "version": "1.0.11",
     "manifest_version": 3,
     "icons": {
@@ -14,15 +14,20 @@
       "default_popup": "index.html"
     },
     "background": {
-      "service_worker": "background.js",
+      "scripts": ["background.js"],
       "type": "module"
     },
     "permissions": [
       "tabs",
       "activeTab",
       "storage",
-      "background",
       "unlimitedStorage",
       "idle"
-    ]
+    ],
+    "browser_specific_settings": {
+      "gecko": {
+        "id": "screentime@example.com",
+        "strict_min_version": "109.0"
+      }
   }
+}

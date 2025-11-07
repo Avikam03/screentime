@@ -1,3 +1,6 @@
+// Cross-browser API compatibility
+const api = typeof browser !== "undefined" ? browser : chrome;
+
 export default {
   add(key, value) {
     return new Promise((resolve) => {
@@ -12,7 +15,7 @@ export default {
 
   set(key, value) {
     return new Promise((resolve) => {
-      chrome.storage.sync.set({ [key]: value }, () => {
+      api.storage.sync.set({ [key]: value }, () => {
         resolve();
       });
     });
@@ -20,7 +23,7 @@ export default {
 
   get(key) {
     return new Promise((resolve) => {
-      chrome.storage.sync.get([key], (result) => {
+      api.storage.sync.get([key], (result) => {
         result[key] ? resolve(result[key]) : resolve([]);
       });
     });
