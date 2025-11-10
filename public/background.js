@@ -1,4 +1,27 @@
 const DEBUG = true;
+
+// Cross-browser API compatibility
+const api = typeof browser !== "undefined" ? browser : chrome;
+
+// Debug logging
+console.log("ScreenTime background script loaded");
+console.log("Using API:", typeof browser !== "undefined" ? "browser (Firefox)" : "chrome");
+console.log("Available APIs:", {
+  storage: !!api.storage,
+  tabs: !!api.tabs,
+  runtime: !!api.runtime,
+  idle: !!api.idle
+});
+
+// Check permissions in Firefox
+if (api.permissions) {
+  api.permissions.contains({
+    permissions: ['tabs', 'storage', 'activeTab']
+  }, (result) => {
+    console.log("Permissions check:", result);
+  });
+}
+
 const CHROME_URLS = [
   "chrome://about",
   "chrome://accessibility",
@@ -77,6 +100,17 @@ const CHROME_URLS = [
   "chrome://webrtc-logs",
   "chrome://whats-new",
   "chrome://internals/session-service",
+  // Firefox URLs
+  "about:addons",
+  "about:config",
+  "about:downloads",
+  "about:home",
+  "about:newtab",
+  "about:preferences",
+  "about:reader",
+  "about:sessionrestore",
+  "about:support",
+  "moz-extension:",
 ];
 
 // Constants for common states/values
@@ -211,41 +245,74 @@ const storage = {
   },
 
   set(key, value) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const data = { [key]: value };
-      chrome.storage.sync.set(data, () => {
-        resolve();
+      api.storage.sync.set(data, () => {
+        if (api.runtime.lastError) {
+          console.error("Storage sync set error:", api.runtime.lastError);
+          reject(api.runtime.lastError);
+        } else {
+          log(`Storage sync set successful: ${key}`);
+          resolve();
+        }
       });
     });
   },
 
   set_local(key, value) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const data = { [key]: value };
-      chrome.storage.local.set(data, () => {
-        resolve();
+      api.storage.local.set(data, () => {
+        if (api.runtime.lastError) {
+          console.error("Storage local set error:", api.runtime.lastError);
+          reject(api.runtime.lastError);
+        } else {
+          log(`Storage local set successful: ${key}`);
+          resolve();
+        }
       });
     });
   },
 
   get(key) {
-    return new Promise((resolve) => {
-      chrome.storage.sync.get([key], (result) => {
-        resolve(result[key] || []);
+    return new Promise((resolve, reject) => {
+      api.storage.sync.get([key], (result) => {
+        if (api.runtime.lastError) {
+          console.error("Storage sync get error:", api.runtime.lastError);
+          reject(api.runtime.lastError);
+        } else {
+          log(`Storage sync get successful: ${key}, result:`, result[key]);
+          resolve(result[key] || []);
+        }
       });
     });
   },
 
   get_local(key) {
-    return new Promise((resolve) => {
-      chrome.storage.local.get([key], (result) => {
-        resolve(result[key] || []);
+    return new Promise((resolve, reject) => {
+      api.storage.local.get([key], (result) => {
+        if (api.runtime.lastError) {
+          console.error("Storage local get error:", api.runtime.lastError);
+          reject(api.runtime.lastError);
+        } else {
+          log(`Storage local get successful: ${key}, result:`, result[key]);
+          resolve(result[key] || []);
+        }
       });
     });
   },
 };
 
-chrome.runtime.onInstalled.addListener(() => {
+api.runtime.onInstalled.addListener(() => {
+  console.log("Extension installed/updated - initializing storage");
+  
+  // Test storage immediately
+  storage.set_local("test_storage", "Firefox test").then(() => {
+    console.log("✅ Storage test successful");
+  }).catch(error => {
+    console.error("❌ Storage test failed:", error);
+  });
+  
   const currentdate = new Date();
   const startweek = new Date(currentdate);
   startweek.setDate(currentdate.getDate() - currentdate.getDay());
@@ -333,7 +400,7 @@ function log(message) {
 function getCurrentTab() {
   return new Promise((resolve, reject) => {
     const queryOptions = { active: true, lastFocusedWindow: true };
-    chrome.tabs.query(queryOptions, ([tab]) => {
+    api.tabs.query(queryOptions, ([tab]) => {
       tab ? resolve(tab) : reject(new Error('Unable to retrieve current tab'));
     });
   });
@@ -342,7 +409,9 @@ function getCurrentTab() {
 function getUrlHostname(tab) {
   try {
     const url = tab.url || 'chrome://newtab/';
-    if (tab.url?.startsWith('chrome-extension://') || tab.url?.startsWith('file:')) {
+    if (tab.url?.startsWith('chrome-extension://') || 
+        tab.url?.startsWith('moz-extension://') || 
+        tab.url?.startsWith('file:')) {
       return 'newtab';
     }
     return new URL(url).hostname;
@@ -363,6 +432,8 @@ async function saveTabSession(tab) {
 }
 
 async function updateCurrentTab(tabId, tab) {
+  log(`updateCurrentTab called with tabId: ${tabId}, url: ${tab?.url}`);
+  
   if (!tab?.url) {
     log('Invalid tab data');
     return;
@@ -370,14 +441,17 @@ async function updateCurrentTab(tabId, tab) {
 
   const currentTab = await storage.get_local('limitify_curtab');
   const hostname = getUrlHostname(tab);
+  
+  log(`Current tab: ${JSON.stringify(currentTab)}`);
+  log(`New hostname: ${hostname}`);
 
   // Save previous tab session
-  if (currentTab?.startTime && !CHROME_URLS.includes(`chrome://${currentTab.url}`)) {
+  if (currentTab?.startTime && !CHROME_URLS.some(url => currentTab.url?.includes(url))) {
     await saveTabSession(currentTab);
   }
 
-  // Don't track chrome URLs
-  if (CHROME_URLS.includes(`chrome://${hostname}`)) {
+  // Don't track chrome/firefox URLs
+  if (CHROME_URLS.some(url => hostname?.includes(url.replace('chrome://', '').replace('about:', '')))) {
     await storage.set_local('limitify_curtab', EMPTY_TAB);
     return;
   }
@@ -398,7 +472,7 @@ async function updateCurrentTab(tabId, tab) {
   if (blockedSites[hostname]) {
     setTimeout(() => {
       try {
-        chrome.tabs.remove(tabId);
+        api.tabs.remove(tabId);
       } catch (e) {
         log(`Error removing blocked tab: ${e}`);
       }
@@ -407,10 +481,10 @@ async function updateCurrentTab(tabId, tab) {
 }
 
 // Event Listeners
-chrome.windows.onFocusChanged.addListener(async (windowId) => {
+api.windows.onFocusChanged.addListener(async (windowId) => {
   const currentTab = await storage.get_local('limitify_curtab');
 
-  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+  if (windowId === api.windows.WINDOW_ID_NONE) {
     log('WINDOW_LOST_FOCUS: left browser window(s)');
     if (currentTab?.startTime) {
       await saveTabSession(currentTab);
@@ -427,41 +501,54 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
   }
 });
 
-chrome.idle.onStateChanged.addListener(async (newState) => {
-  log(`CHANGED STATE TO: ${newState}`);
-  
-  const currentTab = await storage.get_local('limitify_curtab');
-  if (!currentTab?.startTime) return;
+// Firefox doesn't have idle API in the same way, so wrap it
+if (api.idle && api.idle.onStateChanged) {
+  api.idle.onStateChanged.addListener(async (newState) => {
+    log(`CHANGED STATE TO: ${newState}`);
+    
+    const currentTab = await storage.get_local('limitify_curtab');
+    if (!currentTab?.startTime) return;
 
-  await saveTabSession(currentTab);
+    await saveTabSession(currentTab);
 
-  if (newState === TAB_STATES.IDLE || newState === TAB_STATES.LOCKED) {
-    log(`${newState.toUpperCase()}: gone into ${newState}`);
-    await storage.set_local('limitify_curtab', EMPTY_TAB);
-  } else if (newState === TAB_STATES.ACTIVE) {
-    log(`ACTIVE: back from being ${newState}`);
-    try {
-      const tab = await getCurrentTab();
-      await updateCurrentTab(tab.id, tab);
-    } catch (error) {
-      log(`Failed to handle active state: ${error}`);
+    if (newState === TAB_STATES.IDLE || newState === TAB_STATES.LOCKED) {
+      log(`${newState.toUpperCase()}: gone into ${newState}`);
+      await storage.set_local('limitify_curtab', EMPTY_TAB);
+    } else if (newState === TAB_STATES.ACTIVE) {
+      log(`ACTIVE: back from being ${newState}`);
+      try {
+        const tab = await getCurrentTab();
+        await updateCurrentTab(tab.id, tab);
+      } catch (error) {
+        log(`Failed to handle active state: ${error}`);
+      }
     }
-  }
-});
+  });
+}
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+api.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  log(`Tab updated: ${tabId}, status: ${changeInfo.status}, url: ${tab?.url}`);
   if (changeInfo.status === 'complete') {
     updateCurrentTab(tabId, tab);
   }
 });
 
-chrome.tabs.onActivated.addListener((activeInfo) => {
-  chrome.tabs.get(activeInfo.tabId, (tab) => {
-    updateCurrentTab(tab.id, tab);
+api.tabs.onActivated.addListener((activeInfo) => {
+  log(`Tab activated: ${activeInfo.tabId}`);
+  api.tabs.get(activeInfo.tabId, (tab) => {
+    if (api.runtime.lastError) {
+      console.error("Error getting tab info:", api.runtime.lastError);
+      return;
+    }
+    log(`Got tab info: ${tab?.url}`);
+    updateCurrentTab(tab.id, tab).catch(error => {
+      console.error("Error in updateCurrentTab:", error);
+    });
   });
 });
 
-chrome.runtime.setUninstallURL(
-  "https://forms.gle/3f8MTHYmVVpL9jCK9"
-)
+// Firefox doesn't support setUninstallURL
+if (api.runtime.setUninstallURL) {
+  api.runtime.setUninstallURL("https://forms.gle/3f8MTHYmVVpL9jCK9");
+}
 
