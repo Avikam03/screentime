@@ -1,3 +1,5 @@
+
+
 ## ScreenTime
 [![chrome store logo](https://developer.chrome.com/static/docs/webstore/branding/image/UV4C4ybeBTsZt43U4xis.png)](https://chrome.google.com/webstore/detail/screentime/gachmghamoanlighmiebamagipmhdphl)
 
@@ -9,6 +11,14 @@ Features:
 - Block distracting websites
 
 That's it - a simple tool to help you browse more mindfully.
+
+## Getting Started
+
+To build and run the extension locally:
+1. Run the build script: `./build.sh`
+2. Navigate to `chrome://extensions/` in your browser
+3. Enable **Developer mode** in the top-right corner
+4. Click **Load unpacked** and select the `out` directory
 
 <p align="center">
     <img src="./public/chromestore/poster1.png" alt="poster 1" width="650"/>
